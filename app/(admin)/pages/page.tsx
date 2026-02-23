@@ -1,0 +1,135 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import api from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+
+export default function PagesIndex() {
+  const [pages, setPages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Mengambil data dari API GET /api/v1/admin/pages
+  const fetchPages = async () => {
+    try {
+      const res = await api.get("/api/v1/admin/pages");
+      if (res.data.status === "success") {
+        setPages(res.data.data || []);
+      }
+    } catch (error) {
+      toast.error("Gagal memuat data halaman");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPages();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Kelola Halaman
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Daftar semua halaman publik Titian Nusantara.
+          </p>
+        </div>
+        <Link href="/dashboard/pages/create">
+          <Button className="shadow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Tambah Halaman
+          </Button>
+        </Link>
+      </div>
+
+      <div className="rounded-md border border-border bg-card overflow-hidden">
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead>Judul Halaman</TableHead>
+              <TableHead>URL (Slug)</TableHead>
+              <TableHead>Template</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : pages.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center h-24 text-muted-foreground"
+                >
+                  Belum ada halaman yang dibuat.
+                </TableCell>
+              </TableRow>
+            ) : (
+              pages.map((page) => (
+                <TableRow
+                  key={page.id}
+                  className="hover:bg-muted/50 transition-colors"
+                >
+                  <TableCell className="font-medium">{page.title}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    /{page.slug}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {page.template_name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        page.status === "published" ? "default" : "secondary"
+                      }
+                      className={
+                        page.status === "published"
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      }
+                    >
+                      {page.status === "published" ? "Publik" : "Draf"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="outline" size="icon" title="Edit">
+                      <Edit className="h-4 w-4 text-foreground/70" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      title="Hapus"
+                      className="hover:text-destructive hover:border-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
