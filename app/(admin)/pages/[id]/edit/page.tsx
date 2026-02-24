@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import api from "@/lib/api";
@@ -30,20 +30,25 @@ const pageSchema = z.object({
     .string()
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug hanya boleh berisi huruf kecil, angka, dan strip (-) tanpa spasi",
+      "Slug hanya boleh berisi huruf kecil, angka, dan strip (-)",
     ),
   template_name: z.string().min(1, "Pilih template"),
   status: z.enum(["draft", "published"]),
 
-  // Template Home
   hero_title: z.string().optional(),
   hero_subtitle: z.string().optional(),
   manifesto_quote: z.string().optional(),
 
-  // Template About
-  about_history: z.string().optional(),
-  about_vision: z.string().optional(),
-  about_mission: z.string().optional(),
+  // 🌟 TAMBAHAN: Array dinamis untuk Nilai
+  values: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Judul wajib diisi"),
+        icon: z.string().min(1, "Ikon wajib dipilih"),
+        description: z.string().min(1, "Deskripsi wajib diisi"),
+      }),
+    )
+    .optional(),
 });
 
 type PageFormValues = z.infer<typeof pageSchema>;
@@ -62,12 +67,23 @@ export default function EditPage() {
     watch,
     setValue,
     reset,
+    control,
     formState: { errors },
   } = useForm<PageFormValues>({
     resolver: zodResolver(pageSchema),
   });
 
   const selectedTemplate = watch("template_name");
+
+  // 🌟 Inisialisasi Fitur Array Dinamis
+  const {
+    fields: valueFields,
+    append: appendValue,
+    remove: removeValue,
+  } = useFieldArray({
+    control,
+    name: "values",
+  });
 
   // 🪄 MENGAMBIL DATA LAMA DAN MENGISI FORM
   useEffect(() => {
@@ -90,11 +106,7 @@ export default function EditPage() {
           hero_title: content.hero_title || "",
           hero_subtitle: content.hero_subtitle || "",
           manifesto_quote: content.manifesto_quote || "",
-
-          // Mapping data About (jika ada)
-          about_history: content.history || "",
-          about_vision: content.vision || "",
-          about_mission: content.mission || "",
+          values: content.values || [], // 🌟 Pastikan array nilai ikut terisi!
         });
       } catch (error) {
         toast.error("Gagal memuat data halaman.");
@@ -129,12 +141,7 @@ export default function EditPage() {
           hero_title: data.hero_title || "",
           hero_subtitle: data.hero_subtitle || "",
           manifesto_quote: data.manifesto_quote || "",
-        };
-      } else if (data.template_name === "about") {
-        contentJson = {
-          history: data.about_history || "",
-          vision: data.about_vision || "",
-          mission: data.about_mission || "",
+          values: data.values || [], // 🌟 Pastikan array nilai ikut terkirim!
         };
       }
 
@@ -304,31 +311,98 @@ export default function EditPage() {
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              {/* 🌟 FITUR BARU: MANAJEMEN NILAI DINAMIS */}
+              <div className="pt-6 border-t border-border">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-semibold text-foreground">
+                      Daftar Nilai Perusahaan
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Tambah, ubah, atau hapus nilai-nilai utama.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      appendValue({ title: "", icon: "Leaf", description: "" })
+                    }
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Tambah Nilai Baru
+                  </Button>
+                </div>
 
-        {/* KONTEN DINAMIS (TEMPLATE ABOUT) */}
-        {selectedTemplate === "about" && (
-          <Card className="border-border shadow-sm border-t-4 border-t-secondary">
-            <CardContent className="p-6 space-y-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-foreground">
-                  Konten Template: Tentang Kami
-                </h3>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Sejarah Singkat</Label>
-                  <Textarea {...register("about_history")} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Visi Perusahaan</Label>
-                  <Input {...register("about_vision")} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Misi Perusahaan</Label>
-                  <Textarea {...register("about_mission")} />
+                <div className="space-y-4">
+                  {valueFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="flex gap-4 items-start p-4 border border-border rounded-lg bg-muted/20 relative group"
+                    >
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Judul Nilai</Label>
+                          <Input
+                            placeholder="Misal: Adil"
+                            {...register(`values.${index}.title`)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Pilih Ikon</Label>
+                          {/* Dropdown ikon manual agar lebih aman */}
+                          <Select
+                            onValueChange={(val) =>
+                              setValue(`values.${index}.icon`, val)
+                            }
+                            defaultValue={field.icon}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Ikon" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Heart">
+                                Heart (Hati)
+                              </SelectItem>
+                              <SelectItem value="Scale">
+                                Scale (Timbangan)
+                              </SelectItem>
+                              <SelectItem value="Leaf">Leaf (Daun)</SelectItem>
+                              <SelectItem value="Compass">
+                                Compass (Kompas)
+                              </SelectItem>
+                              <SelectItem value="Star">
+                                Star (Bintang)
+                              </SelectItem>
+                              <SelectItem value="Shield">
+                                Shield (Perisai)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-3">
+                          <Label>Deskripsi Nilai</Label>
+                          <Textarea
+                            placeholder="Penjelasan singkat..."
+                            {...register(`values.${index}.description`)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tombol Hapus Nilai */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => removeValue(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>

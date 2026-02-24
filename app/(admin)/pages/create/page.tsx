@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import api from "@/lib/api";
@@ -30,15 +30,25 @@ const pageSchema = z.object({
     .string()
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug hanya boleh berisi huruf kecil, angka, dan strip (-) tanpa spasi",
+      "Slug hanya boleh berisi huruf kecil, angka, dan strip (-)",
     ),
   template_name: z.string().min(1, "Pilih template"),
   status: z.enum(["draft", "published"]),
 
-  // Field khusus untuk JSON 'home' template (Aman dari syntax error karena di-handle form)
   hero_title: z.string().optional(),
   hero_subtitle: z.string().optional(),
   manifesto_quote: z.string().optional(),
+
+  // 🌟 TAMBAHAN: Array dinamis untuk Nilai
+  values: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Judul wajib diisi"),
+        icon: z.string().min(1, "Ikon wajib dipilih"),
+        description: z.string().min(1, "Deskripsi wajib diisi"),
+      }),
+    )
+    .optional(),
 });
 
 type PageFormValues = z.infer<typeof pageSchema>;
@@ -52,16 +62,29 @@ export default function CreatePage() {
     handleSubmit,
     watch,
     setValue,
+    control, // 🌟 Pastikan control dipanggil
     formState: { errors },
   } = useForm<PageFormValues>({
     resolver: zodResolver(pageSchema),
     defaultValues: {
       status: "draft",
       template_name: "home",
+      // Beri nilai default kosong agar Admin bisa langsung mengisi
+      values: [{ title: "Bermakna", icon: "Heart", description: "" }],
     },
   });
 
   const selectedTemplate = watch("template_name");
+
+  // 🌟 Inisialisasi Fitur Array Dinamis
+  const {
+    fields: valueFields,
+    append: appendValue,
+    remove: removeValue,
+  } = useFieldArray({
+    control,
+    name: "values",
+  });
 
   // 🪄 UX FEATURE: Auto-generate Slug dari Title
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +111,7 @@ export default function CreatePage() {
           hero_title: data.hero_title || "",
           hero_subtitle: data.hero_subtitle || "",
           manifesto_quote: data.manifesto_quote || "",
+          values: data.values || [], // 🌟 Pastikan array nilai ikut terkirim!
         };
       }
 
@@ -256,6 +280,101 @@ export default function CreatePage() {
                     className="min-h-[100px]"
                     {...register("manifesto_quote")}
                   />
+                </div>
+              </div>
+
+              {/* 🌟 FITUR BARU: MANAJEMEN NILAI DINAMIS */}
+              <div className="pt-6 border-t border-border">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-semibold text-foreground">
+                      Daftar Nilai Perusahaan
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Tambah, ubah, atau hapus nilai-nilai utama.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      appendValue({ title: "", icon: "Leaf", description: "" })
+                    }
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Tambah Nilai Baru
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {valueFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="flex gap-4 items-start p-4 border border-border rounded-lg bg-muted/20 relative group"
+                    >
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Judul Nilai</Label>
+                          <Input
+                            placeholder="Misal: Adil"
+                            {...register(`values.${index}.title`)}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Pilih Ikon</Label>
+                          {/* Dropdown ikon manual agar lebih aman */}
+                          <Select
+                            onValueChange={(val) =>
+                              setValue(`values.${index}.icon`, val)
+                            }
+                            defaultValue={field.icon}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Ikon" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Heart">
+                                Heart (Hati)
+                              </SelectItem>
+                              <SelectItem value="Scale">
+                                Scale (Timbangan)
+                              </SelectItem>
+                              <SelectItem value="Leaf">Leaf (Daun)</SelectItem>
+                              <SelectItem value="Compass">
+                                Compass (Kompas)
+                              </SelectItem>
+                              <SelectItem value="Star">
+                                Star (Bintang)
+                              </SelectItem>
+                              <SelectItem value="Shield">
+                                Shield (Perisai)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-3">
+                          <Label>Deskripsi Nilai</Label>
+                          <Textarea
+                            placeholder="Penjelasan singkat..."
+                            {...register(`values.${index}.description`)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tombol Hapus Nilai */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => removeValue(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>

@@ -1,7 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Compass, Heart, Leaf, Scale, Quote } from "lucide-react";
+import {
+  ArrowRight,
+  Compass,
+  Heart,
+  Leaf,
+  Scale,
+  Star,
+  Shield,
+  Quote,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -12,10 +21,28 @@ import {
 } from "@/components/ui/carousel";
 import { motion } from "framer-motion";
 
+// 🌟 Pemetaan Ikon Dinamis
+const IconMap: Record<string, any> = {
+  Heart: Heart,
+  Scale: Scale,
+  Leaf: Leaf,
+  Compass: Compass,
+  Star: Star,
+  Shield: Shield,
+};
+
+// 🌟 Update Tipe Data
+interface ValueItem {
+  title: string;
+  icon: string;
+  description: string;
+}
+
 interface HomeContent {
   hero_title: string;
   hero_subtitle: string;
   manifesto_quote: string;
+  values?: ValueItem[]; // Tambahkan field opsional ini
 }
 
 // --- Variabel Animasi (Framer Motion) ---
@@ -210,45 +237,31 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
             variants={staggerContainer}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
           >
-            {[
-              {
-                icon: Heart,
-                title: "Bermakna",
-                desc: "Solusi dari akar rumput yang menjawab kegelisahan nyata.",
-              },
-              {
-                icon: Scale,
-                title: "Adil",
-                desc: "Akses setara, meruntuhkan dinding pembatas sosial.",
-              },
-              {
-                icon: Leaf,
-                title: "Membumi",
-                desc: "Rendah hati, menghargai kearifan dan budaya lokal.",
-              },
-              {
-                icon: Compass,
-                title: "Berkelanjutan",
-                desc: "Membangun ekosistem mandiri yang terus berputar.",
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={fadeInUp}
-                whileHover={{ y: -10 }}
-                className="group p-8 rounded-3xl bg-background/60 backdrop-blur-lg border border-white/20 shadow-lg dark:border-white/5 dark:bg-white/5 transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-8 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                  <item.icon className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4 text-foreground">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {item.desc}
-                </p>
-              </motion.div>
-            ))}
+            {/* 🌟 Mapping dari data CMS secara dinamis */}
+            {(content.values || []).map((item, idx) => {
+              // Ambil komponen ikon dari IconMap, jika tidak ditemukan gunakan bentuk Leaf default
+              const IconComponent = IconMap[item.icon] || Leaf;
+
+              return (
+                <motion.div
+                  key={idx}
+                  variants={fadeInUp}
+                  whileHover={{ y: -10 }}
+                  className="group p-8 rounded-3xl bg-background/60 backdrop-blur-lg border border-white/20 shadow-lg dark:border-white/5 dark:bg-white/5 transition-all duration-300"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-8 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                    {/* Render Ikon Dinamis */}
+                    <IconComponent className="w-7 h-7 text-primary-foreground" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-foreground">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
