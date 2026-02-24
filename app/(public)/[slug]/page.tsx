@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { HomeTemplate } from "@/components/templates/HomeTemplate";
+import { AboutTemplate } from "@/components/templates/AboutTemplate";
 
 async function getPageData(slug: string) {
   try {
@@ -55,6 +56,10 @@ export default async function DynamicPage({
   switch (page.template_name) {
     case "home":
       return <HomeTemplate content={page.content_json} />;
+
+    case "about":
+      return <AboutTemplate content={page.content_json} />;
+
     default:
       return (
         <div className="container mx-auto py-24 px-4 text-center min-h-[50vh] flex flex-col justify-center">

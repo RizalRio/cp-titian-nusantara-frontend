@@ -6,7 +6,16 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Plus, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Leaf,
+  Target,
+  Heart,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 
 import api from "@/lib/api";
@@ -23,29 +32,50 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 
-// Skema Zod (Sama dengan Create)
+// 🌟 Skema Zod yang Diperbarui
 const pageSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter"),
   slug: z
     .string()
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug hanya boleh berisi huruf kecil, angka, dan strip (-)",
+      "Slug hanya boleh berisi huruf kecil, angka, dan strip (-) tanpa spasi",
     ),
   template_name: z.string().min(1, "Pilih template"),
   status: z.enum(["draft", "published"]),
 
+  // Field Home (Opsional)
   hero_title: z.string().optional(),
   hero_subtitle: z.string().optional(),
   manifesto_quote: z.string().optional(),
 
-  // 🌟 TAMBAHAN: Array dinamis untuk Nilai
+  // Array Dinamis Nilai Perusahaan (Digunakan di Home & About)
   values: z
     .array(
       z.object({
-        title: z.string().min(1, "Judul wajib diisi"),
-        icon: z.string().min(1, "Ikon wajib dipilih"),
-        description: z.string().min(1, "Deskripsi wajib diisi"),
+        title: z.string().optional(),
+        icon: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
+
+  // 🌟 Field About (Opsional)
+  about_hero_title: z.string().optional(),
+  about_who_we_are: z.string().optional(),
+  about_why_us: z.string().optional(),
+  about_manifesto_intro: z.string().optional(),
+  about_vision: z.string().optional(),
+  about_mission: z.string().optional(),
+  about_timeline_summary: z.string().optional(),
+
+  // 🌟 Array Dinamis Timeline (Khusus About)
+  timeline_details: z
+    .array(
+      z.object({
+        year: z.string().optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
       }),
     )
     .optional(),
@@ -76,6 +106,7 @@ export default function EditPage() {
   const selectedTemplate = watch("template_name");
 
   // 🌟 Inisialisasi Fitur Array Dinamis
+  // Inisialisasi Fitur Array Dinamis untuk Nilai (Sudah ada)
   const {
     fields: valueFields,
     append: appendValue,
@@ -83,6 +114,16 @@ export default function EditPage() {
   } = useFieldArray({
     control,
     name: "values",
+  });
+
+  // 🌟 Inisialisasi Fitur Array Dinamis untuk Timeline
+  const {
+    fields: timelineFields,
+    append: appendTimeline,
+    remove: removeTimeline,
+  } = useFieldArray({
+    control,
+    name: "timeline_details",
   });
 
   // 🪄 MENGAMBIL DATA LAMA DAN MENGISI FORM
@@ -106,7 +147,19 @@ export default function EditPage() {
           hero_title: content.hero_title || "",
           hero_subtitle: content.hero_subtitle || "",
           manifesto_quote: content.manifesto_quote || "",
-          values: content.values || [], // 🌟 Pastikan array nilai ikut terisi!
+
+          // 🌟 Mapping data About Baru
+          about_hero_title: content.hero_title || "",
+          about_who_we_are: content.who_we_are || "",
+          about_why_us: content.why_us || "",
+          about_manifesto_intro: content.manifesto_intro || "",
+          about_vision: content.vision || "",
+          about_mission: content.mission || "",
+          about_timeline_summary: content.timeline_summary || "",
+
+          // Array Dinamis
+          values: content.values || [],
+          timeline_details: content.timeline_details || [],
         });
       } catch (error) {
         toast.error("Gagal memuat data halaman.");
@@ -142,6 +195,20 @@ export default function EditPage() {
           hero_subtitle: data.hero_subtitle || "",
           manifesto_quote: data.manifesto_quote || "",
           values: data.values || [], // 🌟 Pastikan array nilai ikut terkirim!
+        };
+      } else if (data.template_name === "about") {
+        contentJson = {
+          hero_title: data.about_hero_title || "",
+          who_we_are: data.about_who_we_are || "",
+          why_us: data.about_why_us || "",
+          manifesto_intro: data.about_manifesto_intro || "",
+          vision: data.about_vision || "",
+          mission: data.about_mission || "",
+          timeline_summary: data.about_timeline_summary || "",
+
+          // Data Array Dinamis
+          timeline_details: data.timeline_details || [],
+          values: data.values || [], // Membawa data nilai & prinsip
         };
       }
 
@@ -397,6 +464,247 @@ export default function EditPage() {
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:bg-destructive/10"
+                        onClick={() => removeValue(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* KONTEN DINAMIS (TEMPLATE ABOUT) */}
+        {selectedTemplate === "about" && (
+          <Card className="border-border shadow-sm border-t-4 border-t-secondary">
+            <CardContent className="p-6 space-y-10">
+              <div className="mb-4 border-b border-border pb-4">
+                <h3 className="text-xl font-bold text-foreground">
+                  Konten Template: Tentang Kami
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Lengkapi narasi, manifesto, dan sejarah perjalanan Titian
+                  Nusantara.
+                </p>
+              </div>
+
+              {/* 1. SEKSI NARASI UTAMA */}
+              <div className="space-y-6">
+                <h4 className="font-semibold text-primary flex items-center gap-2">
+                  <Leaf className="w-4 h-4" /> 1. Narasi Utama
+                </h4>
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <Label>Headline / Judul Halaman</Label>
+                    <Input
+                      placeholder="Misal: Menelusuri Jejak, Merawat Harapan."
+                      {...register("about_hero_title")}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Siapa Kami</Label>
+                      <Textarea
+                        className="min-h-[150px]"
+                        placeholder="Titian Nusantara adalah simpul pergerakan..."
+                        {...register("about_who_we_are")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mengapa Kami</Label>
+                      <Textarea
+                        className="min-h-[150px]"
+                        placeholder="Karena perubahan sejati tidak datang dari atas..."
+                        {...register("about_why_us")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. SEKSI MANIFESTO */}
+              <div className="space-y-6 pt-6 border-t border-border">
+                <h4 className="font-semibold text-primary flex items-center gap-2">
+                  <Target className="w-4 h-4" /> 2. Manifesto & Visi Misi
+                </h4>
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <Label>Pengantar Manifesto</Label>
+                    <Input
+                      placeholder="Komitmen kami terukir dalam langkah nyata..."
+                      {...register("about_manifesto_intro")}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Visi</Label>
+                      <Textarea
+                        className="min-h-[120px]"
+                        placeholder="Mewujudkan tatanan masyarakat yang mandiri..."
+                        {...register("about_vision")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Misi</Label>
+                      <Textarea
+                        className="min-h-[120px]"
+                        placeholder="Menjadi jembatan yang menghubungkan..."
+                        {...register("about_mission")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. SEKSI TIMELINE */}
+              <div className="space-y-6 pt-6 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-primary flex items-center gap-2">
+                    <ArrowRight className="w-4 h-4" /> 3. Jejak Waktu (Timeline)
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      appendTimeline({ year: "", title: "", description: "" })
+                    }
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Tambah Jejak Waktu
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Rangkuman Timeline (Teks Sisi Kiri)</Label>
+                  <Textarea
+                    placeholder="Perjalanan kami bukanlah garis lurus..."
+                    {...register("about_timeline_summary")}
+                  />
+                </div>
+
+                <div className="space-y-4 mt-4">
+                  {timelineFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="flex gap-4 items-start p-4 border border-border rounded-lg bg-muted/20"
+                    >
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="space-y-2 md:col-span-1">
+                          <Label>Tahun</Label>
+                          <Input
+                            placeholder="Misal: 2020"
+                            {...register(`timeline_details.${index}.year`)}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-3">
+                          <Label>Judul Momen</Label>
+                          <Input
+                            placeholder="Misal: Langkah Pertama"
+                            {...register(`timeline_details.${index}.title`)}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-4">
+                          <Label>Deskripsi Momen</Label>
+                          <Textarea
+                            placeholder="Titian Nusantara didirikan..."
+                            {...register(
+                              `timeline_details.${index}.description`,
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10 mt-6"
+                        onClick={() => removeTimeline(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. SEKSI NILAI & PRINSIP */}
+              <div className="space-y-6 pt-6 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-primary flex items-center gap-2">
+                    <Heart className="w-4 h-4" /> 4. Nilai dan Prinsip
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      appendValue({ title: "", icon: "Leaf", description: "" })
+                    }
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Tambah Nilai Baru
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {valueFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="flex gap-4 items-start p-4 border border-border rounded-lg bg-muted/20"
+                    >
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Judul Nilai</Label>
+                          <Input
+                            placeholder="Misal: Adil"
+                            {...register(`values.${index}.title`)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Pilih Ikon</Label>
+                          <Select
+                            onValueChange={(val) =>
+                              setValue(`values.${index}.icon`, val)
+                            }
+                            defaultValue={field.icon}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Ikon" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Heart">
+                                Heart (Hati)
+                              </SelectItem>
+                              <SelectItem value="Scale">
+                                Scale (Timbangan)
+                              </SelectItem>
+                              <SelectItem value="Leaf">Leaf (Daun)</SelectItem>
+                              <SelectItem value="Compass">
+                                Compass (Kompas)
+                              </SelectItem>
+                              <SelectItem value="Star">
+                                Star (Bintang)
+                              </SelectItem>
+                              <SelectItem value="Shield">
+                                Shield (Perisai)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2 md:col-span-3">
+                          <Label>Deskripsi Nilai</Label>
+                          <Textarea
+                            placeholder="Penjelasan singkat..."
+                            {...register(`values.${index}.description`)}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10 mt-6"
                         onClick={() => removeValue(index)}
                       >
                         <Trash2 className="w-4 h-4" />
