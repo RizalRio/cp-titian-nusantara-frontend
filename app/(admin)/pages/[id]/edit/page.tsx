@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 
-// 🛡️ KEAMANAN: Validasi Skema Zod
+// Skema Zod (Sama dengan Create)
 const pageSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter"),
   slug: z
@@ -35,45 +35,86 @@ const pageSchema = z.object({
   template_name: z.string().min(1, "Pilih template"),
   status: z.enum(["draft", "published"]),
 
-  // Field khusus untuk JSON 'home' template (Aman dari syntax error karena di-handle form)
+  // Template Home
   hero_title: z.string().optional(),
   hero_subtitle: z.string().optional(),
   manifesto_quote: z.string().optional(),
+
+  // Template About
+  about_history: z.string().optional(),
+  about_vision: z.string().optional(),
+  about_mission: z.string().optional(),
 });
 
 type PageFormValues = z.infer<typeof pageSchema>;
 
-export default function CreatePage() {
+export default function EditPage() {
   const router = useRouter();
+  const params = useParams(); // Mengambil ID dari URL: /pages/[id]/edit
+  const pageId = params.id as string;
+
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<PageFormValues>({
     resolver: zodResolver(pageSchema),
-    defaultValues: {
-      status: "draft",
-      template_name: "home",
-    },
   });
 
   const selectedTemplate = watch("template_name");
 
-  // 🪄 UX FEATURE: Auto-generate Slug dari Title
+  // 🪄 MENGAMBIL DATA LAMA DAN MENGISI FORM
+  useEffect(() => {
+    const fetchPageDetail = async () => {
+      try {
+        const res = await api.get(`/api/v1/admin/pages/${pageId}`);
+        const data = res.data.data;
+
+        // Membongkar content_json agar masuk ke field input masing-masing
+        const content = data.content_json || {};
+
+        // Fungsi reset() akan menimpa semua value form secara reaktif
+        reset({
+          title: data.title,
+          slug: data.slug,
+          template_name: data.template_name,
+          status: data.status,
+
+          // Mapping data Home
+          hero_title: content.hero_title || "",
+          hero_subtitle: content.hero_subtitle || "",
+          manifesto_quote: content.manifesto_quote || "",
+
+          // Mapping data About (jika ada)
+          about_history: content.history || "",
+          about_vision: content.vision || "",
+          about_mission: content.mission || "",
+        });
+      } catch (error) {
+        toast.error("Gagal memuat data halaman.");
+        router.push("/pages");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    if (pageId) fetchPageDetail();
+  }, [pageId, reset, router]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     setValue("title", title, { shouldValidate: true });
 
-    // Konversi "Beranda Utama" -> "beranda-utama"
     const autoSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
-
     setValue("slug", autoSlug, { shouldValidate: true });
   };
 
@@ -81,7 +122,7 @@ export default function CreatePage() {
     setIsLoading(true);
 
     try {
-      // 🏗️ RAKIT JSON: Mapping input biasa menjadi format content_json yang diminta API Golang
+      // 🏗️ RAKIT ULANG JSON: Mapping input kembali menjadi content_json
       let contentJson = {};
       if (data.template_name === "home") {
         contentJson = {
@@ -89,9 +130,15 @@ export default function CreatePage() {
           hero_subtitle: data.hero_subtitle || "",
           manifesto_quote: data.manifesto_quote || "",
         };
+      } else if (data.template_name === "about") {
+        contentJson = {
+          history: data.about_history || "",
+          vision: data.about_vision || "",
+          mission: data.about_mission || "",
+        };
       }
 
-      // Payload akhir sesuai dengan contoh request yang kamu berikan
+      // Payload untuk PUT Request
       const payload = {
         title: data.title,
         slug: data.slug,
@@ -100,18 +147,32 @@ export default function CreatePage() {
         content_json: contentJson,
       };
 
-      const res = await api.post("/api/v1/admin/pages", payload);
+      const res = await api.put(`/api/v1/admin/pages/${pageId}`, payload);
 
       if (res.data.status === "success") {
-        toast.success("Halaman berhasil dibuat!");
-        router.push("/dashboard/pages"); // Kembali ke tabel
+        toast.success("Perubahan halaman berhasil disimpan!");
+        router.push("/pages");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Gagal menyimpan halaman.");
+      toast.error(
+        error.response?.data?.message || "Gagal menyimpan perubahan.",
+      );
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Tampilkan loading skeleton/spinner jika data sedang di-fetch
+  if (isFetching) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-3 text-muted-foreground font-medium">
+          Memuat data halaman...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-10">
@@ -122,11 +183,9 @@ export default function CreatePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Buat Halaman Baru
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Halaman</h1>
           <p className="text-muted-foreground text-sm">
-            Tambahkan halaman dinamis ke dalam website.
+            Perbarui informasi dan konten halaman publik.
           </p>
         </div>
       </div>
@@ -142,9 +201,8 @@ export default function CreatePage() {
                 </Label>
                 <Input
                   id="title"
-                  placeholder="Misal: Beranda Utama"
                   {...register("title")}
-                  onChange={handleTitleChange} // Panggil fungsi Auto-slug
+                  onChange={handleTitleChange}
                 />
                 {errors.title && (
                   <p className="text-xs text-destructive">
@@ -164,7 +222,6 @@ export default function CreatePage() {
                   <Input
                     id="slug"
                     className="rounded-l-none"
-                    placeholder="beranda-utama"
                     {...register("slug")}
                   />
                 </div>
@@ -175,13 +232,15 @@ export default function CreatePage() {
                 )}
               </div>
 
+              {/* Catatan: Komponen <Select> milik Shadcn sedikit unik karena status value-nya terpisah dari default input HTML.
+                  Oleh karena itu kita wajib mengirim value={watch("template_name")} agar dia berubah saat reset() dipanggil */}
               <div className="space-y-2">
                 <Label>
                   Template Halaman <span className="text-destructive">*</span>
                 </Label>
                 <Select
+                  value={watch("template_name")}
                   onValueChange={(val) => setValue("template_name", val)}
-                  defaultValue="home"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih template" />
@@ -199,10 +258,10 @@ export default function CreatePage() {
                   Status Publikasi <span className="text-destructive">*</span>
                 </Label>
                 <Select
+                  value={watch("status")}
                   onValueChange={(val: "draft" | "published") =>
                     setValue("status", val)
                   }
-                  defaultValue="draft"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih status" />
@@ -219,7 +278,7 @@ export default function CreatePage() {
           </CardContent>
         </Card>
 
-        {/* BAGIAN 2: KONTEN DINAMIS (CONTENT_JSON) */}
+        {/* BAGIAN 2: KONTEN DINAMIS (TEMPLATE HOME) */}
         {selectedTemplate === "home" && (
           <Card className="border-border shadow-sm border-t-4 border-t-primary">
             <CardContent className="p-6 space-y-6">
@@ -227,32 +286,19 @@ export default function CreatePage() {
                 <h3 className="text-lg font-semibold text-foreground">
                   Konten Template: Home
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Isi teks yang akan muncul di halaman beranda utama.
-                </p>
               </div>
-
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Teks Utama (Hero Title)</Label>
-                  <Input
-                    placeholder="Misal: Manusia sebagai pusat..."
-                    {...register("hero_title")}
-                  />
+                  <Input {...register("hero_title")} />
                 </div>
-
                 <div className="space-y-2">
                   <Label>Teks Pendukung (Hero Subtitle)</Label>
-                  <Input
-                    placeholder="Misal: Melangkah bersama untuk dampak yang lebih luas."
-                    {...register("hero_subtitle")}
-                  />
+                  <Input {...register("hero_subtitle")} />
                 </div>
-
                 <div className="space-y-2">
                   <Label>Kutipan Manifesto</Label>
                   <Textarea
-                    placeholder="Misal: Titian Nusantara bukan sekadar platform..."
                     className="min-h-[100px]"
                     {...register("manifesto_quote")}
                   />
@@ -262,9 +308,36 @@ export default function CreatePage() {
           </Card>
         )}
 
+        {/* KONTEN DINAMIS (TEMPLATE ABOUT) */}
+        {selectedTemplate === "about" && (
+          <Card className="border-border shadow-sm border-t-4 border-t-secondary">
+            <CardContent className="p-6 space-y-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Konten Template: Tentang Kami
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Sejarah Singkat</Label>
+                  <Textarea {...register("about_history")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Visi Perusahaan</Label>
+                  <Input {...register("about_vision")} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Misi Perusahaan</Label>
+                  <Textarea {...register("about_mission")} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-4">
-          <Link href="/dashboard/pages">
+          <Link href="/pages">
             <Button variant="ghost" type="button">
               Batal
             </Button>
@@ -275,7 +348,7 @@ export default function CreatePage() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menyimpan...
               </>
             ) : (
-              "Simpan Halaman"
+              "Simpan Perubahan"
             )}
           </Button>
         </div>
