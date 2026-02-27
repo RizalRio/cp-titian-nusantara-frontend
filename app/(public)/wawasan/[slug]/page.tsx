@@ -16,6 +16,7 @@ interface PostDetail {
   category: { name: string };
   tags: { id: string; name: string }[];
   author: { name: string };
+  media?: { file_url: string; media_type: string }[];
 }
 
 const fadeInUp = {
@@ -164,16 +165,33 @@ export default function WawasanDetailPage() {
         </motion.header>
 
         {/* 🌟 HERO IMAGE PLACEHOLDER (Abstrak Earth Tone) */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="w-full h-[40vh] md:h-[60vh] bg-[#F3F5F1] rounded-[40px] mb-16 relative overflow-hidden flex items-center justify-center border border-white/60 shadow-lg shadow-[#2D4A22]/5"
-        >
-          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-[#E3E8E1] rounded-full mix-blend-multiply filter blur-3xl opacity-70" />
-          <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[#D6DFD0] rounded-full mix-blend-multiply filter blur-3xl opacity-50" />
-          <Leaf className="w-24 h-24 text-[#2D4A22]/10 relative z-10" />
-        </motion.div>
+        {post.media && post.media.find((m) => m.media_type === "thumbnail") ? (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            className="w-full h-[40vh] md:h-[60vh] rounded-[40px] mb-16 relative overflow-hidden shadow-lg shadow-[#2D4A22]/5 bg-slate-100 border border-slate-200/50"
+          >
+            <img
+              src={
+                post.media.find((m) => m.media_type === "thumbnail")?.file_url
+              }
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            className="w-full h-[40vh] md:h-[60vh] bg-[#F3F5F1] rounded-[40px] mb-16 relative overflow-hidden flex items-center justify-center border border-white/60 shadow-lg shadow-[#2D4A22]/5"
+          >
+            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-[#E3E8E1] rounded-full mix-blend-multiply filter blur-3xl opacity-70" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[#D6DFD0] rounded-full mix-blend-multiply filter blur-3xl opacity-50" />
+            <Leaf className="w-24 h-24 text-[#2D4A22]/10 relative z-10" />
+          </motion.div>
+        )}
 
         {/* 🌟 KONTEN ARTIKEL (QUILL RENDERER) */}
         <motion.div

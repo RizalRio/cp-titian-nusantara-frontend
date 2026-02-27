@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -51,6 +52,7 @@ export default function EditPostPage() {
     excerpt: "",
     content: "",
     tag_ids: [] as string[],
+    thumbnail_url: "",
   });
 
   // 1. Fetch Data Artikel, Kategori, dan Tag secara bersamaan
@@ -73,6 +75,13 @@ export default function EditPostPage() {
           ? postData.tags.map((t: any) => t.id)
           : [];
 
+        const thumbnailMedia = postData.media?.find(
+          (m: any) => m.media_type === "thumbnail",
+        );
+        const existingThumbnailUrl = thumbnailMedia
+          ? thumbnailMedia.file_url
+          : "";
+
         setFormData({
           title: postData.title,
           category_id: postData.category.id, // Ambil ID dari objek category
@@ -80,6 +89,7 @@ export default function EditPostPage() {
           excerpt: postData.excerpt || "",
           content: postData.content,
           tag_ids: existingTagIds,
+          thumbnail_url: existingThumbnailUrl,
         });
       } catch (error) {
         console.error("Gagal memuat data:", error);
@@ -188,7 +198,7 @@ export default function EditPostPage() {
           size="icon"
           className="rounded-full h-10 w-10 hover:bg-muted/50"
         >
-          <Link href="/admin/posts">
+          <Link href="/posts">
             <ArrowLeft className="w-5 h-5" />
           </Link>
         </Button>
@@ -279,6 +289,16 @@ export default function EditPostPage() {
           <div className="lg:col-span-4 space-y-6 sticky top-6">
             <Card className="rounded-[24px] shadow-sm border-border bg-card">
               <CardContent className="p-6 space-y-8">
+                <ImageUpload
+                  value={formData.thumbnail_url}
+                  onChange={(url) =>
+                    setFormData({ ...formData, thumbnail_url: url })
+                  }
+                  onRemove={() =>
+                    setFormData({ ...formData, thumbnail_url: "" })
+                  }
+                  label="Gambar Utama (Thumbnail)"
+                />
                 <div className="space-y-3">
                   <Label className="font-semibold text-foreground">
                     Status Publikasi

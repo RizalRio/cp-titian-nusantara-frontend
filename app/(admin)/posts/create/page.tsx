@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -49,6 +50,7 @@ export default function CreatePostPage() {
     excerpt: "",
     content: "", // Akan diisi oleh HTML dari Quill
     tag_ids: [] as string[],
+    thumbnail_url: "",
   });
 
   // 1. Fetch Master Data (Kategori & Tag)
@@ -244,6 +246,16 @@ export default function CreatePostPage() {
           <div className="lg:col-span-4 space-y-6 sticky top-6">
             <Card className="rounded-[24px] shadow-sm border-border bg-card">
               <CardContent className="p-6 space-y-8">
+                <ImageUpload
+                  value={formData.thumbnail_url}
+                  onChange={(url) =>
+                    setFormData({ ...formData, thumbnail_url: url })
+                  }
+                  onRemove={() =>
+                    setFormData({ ...formData, thumbnail_url: "" })
+                  }
+                  label="Gambar Utama (Thumbnail)"
+                />
                 <div className="space-y-3">
                   <Label className="font-semibold text-foreground">
                     Status Publikasi

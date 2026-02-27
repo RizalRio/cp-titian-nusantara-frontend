@@ -27,6 +27,7 @@ interface Post {
   excerpt: string;
   created_at: string;
   category: { name: string };
+  media?: { file_url: string; media_type: string }[];
 }
 
 // Konfigurasi Animasi Framer Motion
@@ -278,11 +279,26 @@ function WawasanContent() {
                     className="group block h-full bg-white/50 backdrop-blur-sm border border-white/60 rounded-[32px] p-4 hover:bg-white hover:shadow-xl hover:shadow-[#2D4A22]/5 transition-all duration-500 hover:-translate-y-1"
                   >
                     {/* Placeholder Gambar (Abstrak Earth Tone) */}
-                    <div className="w-full h-56 bg-[#F3F5F1] rounded-[24px] mb-6 relative overflow-hidden flex items-center justify-center group-hover:bg-[#EAECE7] transition-colors duration-500">
-                      <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#2D4A22]/5 rounded-full blur-3xl group-hover:bg-[#2D4A22]/10 transition-colors" />
-                      <div className="absolute -left-10 -top-10 w-32 h-32 bg-slate-400/5 rounded-full blur-2xl" />
-                      <Leaf className="w-12 h-12 text-[#2D4A22]/10 group-hover:scale-110 transition-transform duration-700" />
-                    </div>
+                    {post.media &&
+                    post.media.find((m) => m.media_type === "thumbnail") ? (
+                      <div className="w-full h-56 bg-slate-100 rounded-[24px] mb-6 relative overflow-hidden group-hover:shadow-md transition-all duration-500">
+                        <img
+                          src={
+                            post.media.find((m) => m.media_type === "thumbnail")
+                              ?.file_url
+                          }
+                          alt={post.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                    ) : (
+                      /* Placeholder Gambar (Abstrak Earth Tone) */
+                      <div className="w-full h-56 bg-[#F3F5F1] rounded-[24px] mb-6 relative overflow-hidden flex items-center justify-center group-hover:bg-[#EAECE7] transition-colors duration-500">
+                        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#2D4A22]/5 rounded-full blur-3xl group-hover:bg-[#2D4A22]/10 transition-colors" />
+                        <div className="absolute -left-10 -top-10 w-32 h-32 bg-slate-400/5 rounded-full blur-2xl" />
+                        <Leaf className="w-12 h-12 text-[#2D4A22]/10 group-hover:scale-110 transition-transform duration-700" />
+                      </div>
+                    )}
 
                     <div className="px-2">
                       <div className="flex items-center gap-3 mb-4">
