@@ -19,6 +19,7 @@ const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Halaman", icon: FileText, path: "/pages" },
   { name: "Wawasan", icon: BookOpen, path: "/posts" },
+  { name: "Ekosistem Layanan", icon: Leaf, path: "/services" },
   { name: "Jejak Karya", icon: Briefcase, path: "/projects" },
   { name: "Kolaborasi", icon: MessageSquare, path: "/messages" },
   { name: "Pengaturan", icon: Settings, path: "/settings" },
