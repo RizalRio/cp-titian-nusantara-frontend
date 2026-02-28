@@ -109,17 +109,72 @@ export default function EditPostPage() {
   // 2. Inisialisasi Quill (Berjalan HANYA setelah isPageLoading = false)
   useEffect(() => {
     if (!isPageLoading && editorRef.current && !quillInstance.current) {
+      const imageHandler = () => {
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute(
+          "accept",
+          "image/png, image/jpeg, image/webp, image/gif",
+        );
+        input.click();
+
+        input.onchange = async () => {
+          const file = input.files ? input.files[0] : null;
+          if (!file) return;
+
+          // Validasi ukuran (Maks 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            alert("Ukuran gambar maksimal 5MB.");
+            return;
+          }
+
+          try {
+            // Gunakan API Upload yang sama dengan Thumbnail
+            const formData = new FormData();
+            formData.append("image", file);
+
+            // Toast/Alert Loading bisa ditambahkan di sini
+            const res = await api.post("/api/v1/admin/media/upload", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            const imageUrl = res.data.data.url;
+            const quill = quillInstance.current;
+
+            if (quill) {
+              // Dapatkan posisi kursor saat ini
+              const range = quill.getSelection(true);
+              // Sisipkan elemen <img> dengan URL dari Backend Golang kita
+              quill.insertEmbed(range.index, "image", imageUrl);
+              // Pindahkan kursor ke setelah gambar
+              quill.setSelection(range.index + 1);
+            }
+          } catch (error: any) {
+            console.error("Gagal mengunggah gambar inline:", error);
+            alert(
+              error.response?.data?.message ||
+                "Gagal menyisipkan gambar ke dalam teks.",
+            );
+          }
+        };
+      };
+
       quillInstance.current = new Quill(editorRef.current, {
         theme: "snow",
-        placeholder: "Lanjutkan menulis wawasan Anda...",
+        placeholder: "Tuliskan cerita dan wawasan lengkap Anda di sini...",
         modules: {
-          toolbar: [
-            [{ header: [2, 3, 4, false] }],
-            ["bold", "italic", "underline", "strike"],
-            [{ list: "ordered" }, { list: "bullet" }],
-            ["blockquote", "link"],
-            ["clean"],
-          ],
+          toolbar: {
+            container: [
+              [{ header: [2, 3, 4, false] }],
+              ["bold", "italic", "underline", "strike"],
+              [{ list: "ordered" }, { list: "bullet" }],
+              ["blockquote", "link", "image"], // 🌟 Tambahkan tombol "image"
+              ["clean"],
+            ],
+            handlers: {
+              image: imageHandler, // 🌟 Daftarkan custom handler kita
+            },
+          },
         },
       });
 
