@@ -198,7 +198,7 @@ export default function EditPortfolioPage() {
     setIsSubmitting(true);
     try {
       await api.put(`/api/v1/admin/portfolios/${portfolioId}`, payload);
-      router.push("/admin/portfolios");
+      router.push("/portfolios");
       router.refresh();
     } catch (error: any) {
       alert(error.response?.data?.message || "Gagal memperbarui jejak karya.");
