@@ -10,6 +10,7 @@ import {
   Leaf,
   BookOpen,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -33,7 +34,7 @@ interface Post {
 // Konfigurasi Animasi Framer Motion
 const staggerContainer = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
 };
 
 const fadeInUp = {
@@ -41,7 +42,7 @@ const fadeInUp = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.6, ease: "easeOut" },
   },
 };
 
@@ -65,8 +66,13 @@ function WawasanContent() {
     total_pages: 1,
   });
 
-  // Local state untuk form input (sebelum di-submit ke URL)
+  // Local state untuk form input pencarian
   const [searchInput, setSearchInput] = useState(urlSearch);
+
+  // Sinkronisasi input form saat URL berubah
+  useEffect(() => {
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
 
   // Ambil Master Data Kategori
   useEffect(() => {
@@ -89,7 +95,7 @@ function WawasanContent() {
         const params = new URLSearchParams({
           page: urlPage.toString(),
           limit: "9",
-          status: "published", // Hanya ambil yang sudah dipublikasi
+          status: "published",
         });
 
         if (urlSearch) params.append("search", urlSearch);
@@ -116,21 +122,21 @@ function WawasanContent() {
     fetchPosts();
   }, [urlPage, urlCategory, urlSearch]);
 
-  // Handler untuk memperbarui URL Params (Memicu useEffect di atas)
+  // Handler untuk memperbarui URL Params
   const updateQueryParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value && value !== "all") {
+    if (value && value !== "all" && value !== "") {
       params.set(key, value);
     } else {
       params.delete(key);
     }
 
-    // Reset ke halaman 1 setiap kali filter diubah
     if (key !== "page") {
       params.set("page", "1");
     }
 
-    router.push(`/wawasan?${params.toString()}`);
+    // Mencegah layar scroll ke atas otomatis saat filter ditekan
+    router.push(`/wawasan?${params.toString()}`, { scroll: false });
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -147,53 +153,55 @@ function WawasanContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-slate-800 font-sans selection:bg-[#2D4A22] selection:text-white">
-      {/* 🌟 HERO SECTION (Warm & Reflective) */}
+    <div className="min-h-screen bg-secondary/10 text-foreground font-sans pb-8">
+      {/* 🌟 HERO SECTION */}
       <section className="relative pt-32 pb-20 px-6 lg:px-12 overflow-hidden flex flex-col items-center text-center">
-        {/* Dekorasi Organik Abstract */}
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-[#E3E8E1] rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[#D6DFD0] rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none" />
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none dark:mix-blend-normal" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-secondary/60 rounded-full mix-blend-multiply filter blur-3xl opacity-80 pointer-events-none dark:mix-blend-normal" />
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-          className="relative z-10 max-w-3xl"
-        >
+        <div className="relative z-10 max-w-3xl mx-auto mt-4">
           <motion.div
+            initial="hidden"
+            animate="visible"
             variants={fadeInUp}
-            className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-[#2D4A22] bg-[#2D4A22]/5 border border-[#2D4A22]/10 backdrop-blur-md mb-8"
+            className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-primary bg-primary/5 border border-primary/10 backdrop-blur-md mb-8 shadow-sm"
           >
             <Leaf className="w-4 h-4 mr-2" />
-            <span className="tracking-wide uppercase text-xs font-semibold">
-              Ruang Berbagi
-            </span>
+            Ruang Berbagi Gagasan
           </motion.div>
           <motion.h1
+            initial="hidden"
+            animate="visible"
             variants={fadeInUp}
-            className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight"
+            className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-6 leading-tight"
           >
             Menelusuri Gagasan, <br className="hidden md:block" /> Merawat
-            Ingatan.
+            Ingatan
           </motion.h1>
           <motion.p
+            initial="hidden"
+            animate="visible"
             variants={fadeInUp}
-            className="text-lg md:text-xl text-slate-600 leading-relaxed"
+            className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto"
           >
             Kumpulan pemikiran, cerita dari akar rumput, dan laporan perjalanan
             dalam upaya merajut langkah nyata untuk Nusantara.
           </motion.p>
-        </motion.div>
+        </div>
       </section>
 
-      {/* 🌟 FILTER & SEARCH (SEO-Ready URL Query) */}
+      {/* 🌟 FILTER & SEARCH PANEL */}
       <section className="px-6 lg:px-12 max-w-7xl mx-auto mb-16 relative z-10">
-        <div className="bg-white/60 backdrop-blur-xl border border-white/40 p-3 md:p-4 rounded-full shadow-lg shadow-[#2D4A22]/5 flex flex-col md:flex-row gap-4 items-center justify-between">
-          {/* Daftar Kategori Horizontal (Scrollable di Mobile) */}
+        <div className="bg-card/60 backdrop-blur-xl border border-border p-3 md:p-4 rounded-full shadow-lg shadow-primary/5 flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Daftar Kategori Horizontal */}
           <div className="flex w-full md:w-auto overflow-x-auto hide-scrollbar gap-2 px-2 pb-2 md:pb-0">
             <button
               onClick={() => updateQueryParams("category_id", "all")}
-              className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${urlCategory === "all" ? "bg-[#2D4A22] text-white shadow-md" : "text-slate-500 hover:bg-[#2D4A22]/10 hover:text-[#2D4A22]"}`}
+              className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                urlCategory === "all"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              }`}
             >
               Semua Tulisan
             </button>
@@ -201,7 +209,11 @@ function WawasanContent() {
               <button
                 key={cat.id}
                 onClick={() => updateQueryParams("category_id", cat.id)}
-                className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${urlCategory === cat.id ? "bg-[#2D4A22] text-white shadow-md" : "text-slate-500 hover:bg-[#2D4A22]/10 hover:text-[#2D4A22]"}`}
+                className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                  urlCategory === cat.id
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                }`}
               >
                 {cat.name}
               </button>
@@ -218,11 +230,11 @@ function WawasanContent() {
               placeholder="Cari judul tulisan..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-5 pr-12 py-3 bg-white/80 border border-[#E3E8E1] rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#2D4A22]/20 transition-all placeholder:text-slate-400"
+              className="w-full pl-5 pr-12 py-3 bg-background/80 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-[#2D4A22]/5 hover:bg-[#2D4A22]/10 text-[#2D4A22] rounded-full transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-primary/5 hover:bg-primary/10 text-primary rounded-full transition-colors"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -231,7 +243,7 @@ function WawasanContent() {
       </section>
 
       {/* 🌟 POST GRID */}
-      <section className="px-6 lg:px-12 max-w-7xl mx-auto pb-32">
+      <section className="px-6 lg:px-12 max-w-7xl mx-auto pb-16">
         {isLoading ? (
           /* SKELETON LOADING (Halus & Konsisten) */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -267,6 +279,7 @@ function WawasanContent() {
           /* DATA GRID */
           <>
             <motion.div
+              key={`${urlCategory}-${urlSearch}-${urlPage}`} // 👈 Key dinamis agar animasi reset
               initial="hidden"
               animate="visible"
               variants={staggerContainer}
@@ -276,7 +289,7 @@ function WawasanContent() {
                 <motion.div key={post.id} variants={fadeInUp}>
                   <Link
                     href={`/wawasan/${post.slug}`}
-                    className="group block h-full bg-white/50 backdrop-blur-sm border border-white/60 rounded-[32px] p-4 hover:bg-white hover:shadow-xl hover:shadow-[#2D4A22]/5 transition-all duration-500 hover:-translate-y-1"
+                    className="group bg-card rounded-[32px] overflow-hidden border border-border shadow-sm hover:shadow-2xl hover:shadow-primary/15 transition-all duration-500 flex flex-col h-full relative transform hover:-translate-y-2"
                   >
                     {/* Placeholder Gambar (Abstrak Earth Tone) */}
                     {post.media &&
@@ -288,7 +301,7 @@ function WawasanContent() {
                               ?.file_url
                           }
                           alt={post.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                         />
                       </div>
                     ) : (
@@ -300,26 +313,25 @@ function WawasanContent() {
                       </div>
                     )}
 
-                    <div className="px-2">
+                    <div className="p-8 flex flex-col flex-grow">
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#2D4A22]">
+                        <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
                           {post.category?.name || "Tanpa Kategori"}
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300" />
-                        <span className="text-xs font-medium text-slate-500">
+                        <span className="text-xs font-medium text-muted-foreground">
                           {formatDate(post.created_at)}
                         </span>
                       </div>
 
-                      <h2 className="text-2xl font-bold text-slate-900 leading-tight mb-3 group-hover:text-[#2D4A22] transition-colors line-clamp-2">
+                      <h2 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                         {post.title}
                       </h2>
 
-                      <p className="text-slate-600 leading-relaxed line-clamp-3 mb-6">
+                      <p className="text-muted-foreground leading-relaxed flex-grow line-clamp-3 mb-8">
                         {post.excerpt}
                       </p>
 
-                      <div className="flex items-center text-[#2D4A22] font-semibold text-sm">
+                      <div className="inline-flex items-center text-primary font-bold text-sm mt-auto">
                         Baca Selengkapnya
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
                       </div>
@@ -329,29 +341,33 @@ function WawasanContent() {
               ))}
             </motion.div>
 
-            {/* 🌟 PAGINASI BAWAH */}
+            {/* 🌟 PAGINASI */}
             {meta.total_pages > 1 && (
               <div className="mt-20 flex justify-center items-center gap-4">
                 <button
-                  onClick={() =>
-                    updateQueryParams("page", (meta.page - 1).toString())
-                  }
+                  onClick={() => {
+                    updateQueryParams("page", (meta.page - 1).toString());
+                    window.scrollTo({ top: 300, behavior: "smooth" }); // Opsional: Scroll halus ke atas grid
+                  }}
                   disabled={meta.page === 1}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-[#2D4A22] hover:text-white hover:border-[#2D4A22] disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="text-slate-600 font-medium px-4">
+
+                <div className="bg-card px-6 py-3 rounded-full border border-border text-muted-foreground font-medium shadow-sm">
                   Halaman{" "}
-                  <span className="text-slate-900 font-bold">{meta.page}</span>{" "}
+                  <span className="text-foreground font-bold">{meta.page}</span>{" "}
                   dari {meta.total_pages}
                 </div>
+
                 <button
-                  onClick={() =>
-                    updateQueryParams("page", (meta.page + 1).toString())
-                  }
+                  onClick={() => {
+                    updateQueryParams("page", (meta.page + 1).toString());
+                    window.scrollTo({ top: 300, behavior: "smooth" });
+                  }}
                   disabled={meta.page === meta.total_pages}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-[#2D4A22] hover:text-white hover:border-[#2D4A22] disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm"
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -364,17 +380,15 @@ function WawasanContent() {
   );
 }
 
-// Komponen Utama yang dibungkus Suspense (Wajib untuk penggunaan useSearchParams)
+// 🌟 KOMPONEN UTAMA (Wajib Suspense untuk useSearchParams)
 export default function WawasanPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="animate-pulse flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-[#2D4A22]/20 border-t-[#2D4A22] rounded-full animate-spin mb-4" />
-            <p className="text-[#2D4A22] font-medium">
-              Memuat ruang berbagi...
-            </p>
+            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+            <p className="text-primary font-medium">Memuat ruang berbagi...</p>
           </div>
         </div>
       }
