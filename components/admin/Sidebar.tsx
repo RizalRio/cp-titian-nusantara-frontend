@@ -11,6 +11,8 @@ import {
   Settings,
   Leaf,
   Activity,
+  Folder,
+  Tag,
 } from "lucide-react";
 
 import { useUIStore } from "@/store/useUIStore";
@@ -19,6 +21,8 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Halaman", icon: FileText, path: "/pages" },
+  { name: "Kategori", icon: Folder, path: "/categories" },
+  { name: "Tag", icon: Tag, path: "/tags" },
   { name: "Wawasan", icon: BookOpen, path: "/posts" },
   { name: "Ekosistem Layanan", icon: Leaf, path: "/services" },
   { name: "Jejak Karya", icon: Briefcase, path: "/portfolios" },
