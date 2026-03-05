@@ -22,7 +22,7 @@ const menuItems = [
   { name: "Wawasan", icon: BookOpen, path: "/posts" },
   { name: "Ekosistem Layanan", icon: Leaf, path: "/services" },
   { name: "Jejak Karya", icon: Briefcase, path: "/portfolios" },
-  { name: "Kolaborasi", icon: MessageSquare, path: "/collaboration" },
+  { name: "Kolaborasi", icon: MessageSquare, path: "/collaborations" },
   { name: "Log Aktivitas", icon: Activity, path: "/activity-logs" },
   { name: "Pengaturan", icon: Settings, path: "/settings" },
 ];
