@@ -50,7 +50,7 @@ export default function LoginPage() {
       if (result.status === "success") {
         setAuth(result.data.token, result.data.user);
         toast.success(result.message);
-        router.push("/dashboard");
+        router.push("/admin");
       }
     } catch (error: any) {
       // Sekarang pesan ini akan muncul dan halaman TIDAK akan ke-refresh!
