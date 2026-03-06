@@ -32,11 +32,30 @@ export default function JejakKaryaIndexPage() {
   useEffect(() => {
     const fetchSectors = async () => {
       try {
-        // Tarik semua jejak karya (profil sektor) yang dipublikasi
         const res = await api.get(
           "/api/v1/portfolios?status=published&limit=50",
         );
-        setSectors(res.data.data || []);
+
+        const fetchedData = res.data.data || [];
+
+        // 🌟 LOGIKA PENYARINGAN SEKTOR UNIK (Maksimal 4)
+        const uniqueSectors: PortfolioSector[] = [];
+        const seenSectors = new Set();
+
+        for (const item of fetchedData) {
+          const sectorName = item.sector
+            ? String(item.sector).trim().toLowerCase()
+            : "tanpa kategori";
+
+          if (!seenSectors.has(sectorName)) {
+            seenSectors.add(sectorName);
+            uniqueSectors.push(item);
+          }
+
+          if (uniqueSectors.length === 4) break;
+        }
+
+        setSectors(uniqueSectors);
       } catch (error) {
         console.error("Gagal memuat daftar sektor:", error);
       } finally {
@@ -48,11 +67,11 @@ export default function JejakKaryaIndexPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-slate-800 font-sans pb-32">
-      {/* 🌟 HERO SECTION */}
-      <section className="relative pt-32 pb-24 px-6 lg:px-12 bg-[#2D4A22] text-center overflow-hidden">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/10 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-secondary/10 text-foreground font-sans pb-24">
+      {/* 🌟 HERO SECTION (Tanpa Overlap) */}
+      <section className="relative pt-32 pb-32 px-6 lg:px-12 bg-primary text-center overflow-hidden">
+        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-4xl mx-auto mt-10">
           <motion.div
@@ -68,7 +87,7 @@ export default function JejakKaryaIndexPage() {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-6"
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground tracking-tight leading-tight mb-6"
           >
             Menyelami Lintas Sektor
           </motion.h1>
@@ -76,7 +95,7 @@ export default function JejakKaryaIndexPage() {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed"
+            className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto leading-relaxed"
           >
             Pilih ruang gerak yang ingin Anda jelajahi. Temukan cerita,
             tantangan, dan dampak nyata yang telah kami rajut bersama akar
@@ -86,11 +105,12 @@ export default function JejakKaryaIndexPage() {
       </section>
 
       {/* 🌟 KARTU NAVIGASI SEKTOR */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-12 pt-20">
+      <section className="max-w-[90rem] mx-auto px-6 lg:px-8 pt-24 pb-12 relative z-20">
+        {/* LOADING & EMPTY STATE */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <Loader2 className="w-12 h-12 animate-spin text-[#2D4A22] mb-4" />
-            <p className="text-[#2D4A22] font-medium">
+          <div className="flex flex-col items-center justify-center py-24 bg-card rounded-[40px] shadow-sm border border-border">
+            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+            <p className="text-primary font-medium">
               Memetakan sektor karya...
             </p>
           </div>
@@ -99,69 +119,73 @@ export default function JejakKaryaIndexPage() {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="text-center py-24 bg-white rounded-[40px] border border-slate-100 shadow-sm"
+            className="text-center py-24 bg-card rounded-[40px] border border-border shadow-sm"
           >
-            <Layers className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-slate-800 mb-2">
+            <Layers className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-foreground mb-2">
               Peta Sektor Belum Tersedia
             </h3>
-            <p className="text-slate-500">
+            <p className="text-muted-foreground">
               Kami sedang menyusun dokumentasi portofolio untuk berbagai sektor.
             </p>
           </motion.div>
         ) : (
+          /* GRID 4 KOLOM SEJAJAR */
           <motion.div
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {sectors.map((item) => {
               const thumbnail = item.media?.find(
                 (m) => m.media_type === "thumbnail",
               )?.file_url;
+
+              const displaySectorName = item.sector
+                ? String(item.sector).trim()
+                : "Tanpa Kategori";
+
               return (
                 <motion.div
                   key={item.id}
                   variants={fadeInUp}
-                  className="bg-white rounded-[32px] overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-2xl hover:shadow-[#2D4A22]/15 transition-all duration-500 group flex flex-col relative transform hover:-translate-y-2"
+                  className="group relative w-full h-[400px] md:h-[450px] rounded-[32px] overflow-hidden shadow-lg border-2 border-background/10 bg-muted flex flex-col justify-end transform hover:-translate-y-2 transition-all duration-500"
                 >
-                  {/* Thumbnail Gambar */}
-                  <div className="w-full h-64 bg-slate-100 relative overflow-hidden">
+                  {/* Latar Belakang Gambar Penuh */}
+                  <div className="absolute inset-0 w-full h-full">
                     {thumbnail ? (
                       <img
                         src={thumbnail}
-                        alt={item.sector}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                        alt={displaySectorName}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-[#E3E8E1]">
-                        <Sprout className="w-16 h-16 text-[#2D4A22]/20" />
+                      <div className="w-full h-full flex items-center justify-center bg-secondary/30">
+                        <Sprout className="w-20 h-20 text-primary/20" />
                       </div>
                     )}
-                    {/* Overlay Gradient Soft */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-80" />
-
-                    {/* Label Sektor di Atas Gambar */}
-                    <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
-                      <h3 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
-                        {item.sector}
-                      </h3>
-                    </div>
                   </div>
 
-                  {/* Konten Kartu */}
-                  <div className="p-8 flex flex-col flex-grow bg-white">
-                    <p className="text-slate-600 leading-relaxed mb-8 flex-grow line-clamp-3">
+                  {/* Overlay Gradient Tebal agar Teks Terbaca */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-500" />
+
+                  {/* Konten Teks di Atas Gambar */}
+                  <div className="relative z-10 p-6 flex flex-col h-full justify-end">
+                    <h3 className="text-2xl font-extrabold text-white tracking-tight mb-2 drop-shadow-md">
+                      {displaySectorName}
+                    </h3>
+
+                    <p className="text-white/80 text-sm leading-relaxed mb-6 line-clamp-3">
                       {item.short_story}
                     </p>
 
                     <Link
                       href={`/jejak-karya/${item.slug}`}
-                      className="inline-flex items-center justify-center w-full px-6 py-4 bg-[#FAF9F6] text-[#2D4A22] font-bold rounded-full border border-[#2D4A22]/10 group-hover:bg-[#2D4A22] group-hover:text-white transition-all duration-300"
+                      className="inline-flex items-center justify-between w-full px-5 py-3 bg-primary/90 backdrop-blur-sm text-primary-foreground font-semibold rounded-2xl border border-white/10 hover:bg-primary transition-all duration-300 shadow-xl group-hover:px-6"
                     >
-                      Jelajahi Sektor{" "}
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      <span>Jelajahi</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </motion.div>
