@@ -42,44 +42,33 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        // Menggunakan Promise.allSettled agar jika 1 gagal, yang lain tetap jalan
-        const [postsRes, servicesRes, portfoliosRes, messagesRes, logsRes] =
-          await Promise.allSettled([
-            api.get("/api/v1/posts?limit=1"), // Cukup limit 1, kita hanya butuh meta.total_data
-            api.get("/api/v1/services?limit=1"),
-            api.get("/api/v1/portfolios?limit=1"),
-            api.get("/api/v1/admin/contact-messages?limit=5"), // Ambil 5 pesan terbaru
-            api.get("/api/v1/admin/activity-logs?limit=5"), // Ambil 5 log terbaru
-          ]);
+        // Ambil statistik dan pesan/log terbaru secara paralel
+        const [statsRes, messagesRes, logsRes] = await Promise.allSettled([
+          api.get("/api/v1/admin/dashboard-stats"),
+          api.get("/api/v1/admin/contact-messages?limit=5"), // 5 pesan terbaru
+          api.get("/api/v1/admin/activity-logs?limit=5"), // 5 log terbaru
+        ]);
 
-        // Hitung Statistik
-        const newStats = {
-          posts: 0,
-          services: 0,
-          portfolios: 0,
-          unreadMessages: 0,
-        };
-
-        if (postsRes.status === "fulfilled")
-          newStats.posts = postsRes.value.data.meta?.total_data || 0;
-        if (servicesRes.status === "fulfilled")
-          newStats.services = servicesRes.value.data.meta?.total_data || 0;
-        if (portfoliosRes.status === "fulfilled")
-          newStats.portfolios = portfoliosRes.value.data.meta?.total_data || 0;
-
-        if (messagesRes.status === "fulfilled") {
-          const msgs = messagesRes.value.data.data || [];
-          setRecentMessages(msgs);
-          // Hitung pesan yang belum dibaca dari total data (jika endpoint API Anda mendukung filter ini nantinya, lebih baik. Untuk saat ini kita ambil estimasi atau bisa dibiarkan sesuai data total)
-          newStats.unreadMessages =
-            messagesRes.value.data.meta?.total_data || 0;
+        // Masukkan data statistik dari backend
+        if (statsRes.status === "fulfilled") {
+          const s = statsRes.value.data.data;
+          setStats({
+            posts: s.total_posts,
+            services: s.total_services,
+            portfolios: s.total_portfolios,
+            unreadMessages: s.unread_messages,
+          });
         }
 
+        // Masukkan data pesan terbaru
+        if (messagesRes.status === "fulfilled") {
+          setRecentMessages(messagesRes.value.data.data || []);
+        }
+
+        // Masukkan data log terbaru
         if (logsRes.status === "fulfilled") {
           setRecentLogs(logsRes.value.data.data || []);
         }
-
-        setStats(newStats);
       } catch (error) {
         console.error("Gagal memuat data dashboard", error);
       } finally {
