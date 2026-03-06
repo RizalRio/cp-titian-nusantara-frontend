@@ -1,12 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Loader2,
+  Search,
+  FilterX,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  LayoutTemplate,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -15,7 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +49,13 @@ export default function PagesIndex() {
   const [pages, setPages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State untuk modal konfirmasi Delete
+  // 🌟 STATE UNTUK FILTER, SORT, & PAGINATION (Client-Side)
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // State Modal Delete
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<{
     id: string;
@@ -57,13 +81,32 @@ export default function PagesIndex() {
     fetchPages();
   }, []);
 
-  // Fungsi yang dipanggil saat tombol hapus (tong sampah) diklik
+  // 🌟 LOGIKA FILTER & PAGINASI CLIENT-SIDE
+  const filteredPages = useMemo(() => {
+    return pages.filter((p) => {
+      const matchesSearch =
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.slug.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || p.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [pages, search, statusFilter]);
+
+  const totalPages = Math.ceil(filteredPages.length / limit) || 1;
+  const currentPages = filteredPages.slice((page - 1) * limit, page * limit);
+
+  // Reset Filter
+  const resetFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setPage(1);
+  };
+
   const confirmDelete = (id: string, title: string) => {
     setPageToDelete({ id, title });
     setIsDeleteDialogOpen(true);
   };
 
-  // Fungsi eksekusi ke API Golang
   const handleDelete = async () => {
     if (!pageToDelete) return;
     setIsDeleting(true);
@@ -71,10 +114,8 @@ export default function PagesIndex() {
     try {
       const res = await api.delete(`/api/v1/admin/pages/${pageToDelete.id}`);
       if (res.data.status === "success") {
-        toast.success(
-          `Halaman "${pageToDelete.title}" berhasil dihapus (Soft Delete).`,
-        );
-        fetchPages(); // Refresh tabel setelah hapus
+        toast.success(`Halaman "${pageToDelete.title}" berhasil dihapus.`);
+        fetchPages(); // Refresh data
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Gagal menghapus halaman.");
@@ -85,102 +126,222 @@ export default function PagesIndex() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
-    <div className="space-y-6 pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 font-sans">
+      {/* 🌟 HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary mb-3">
+            <LayoutTemplate className="w-3.5 h-3.5 mr-2" />
+            <span>Manajemen Konten</span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Kelola Halaman
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Daftar semua halaman publik Titian Nusantara.
-          </p>
         </div>
-        <Link href="/pages/create">
-          <Button className="shadow-sm">
-            <Plus className="mr-2 h-4 w-4" /> Tambah Halaman
-          </Button>
-        </Link>
+        <Button asChild className="shadow-sm rounded-xl h-11 px-6">
+          <Link href="/pages/create">
+            <Plus className="w-4 h-4 mr-2" /> Tambah Halaman Baru
+          </Link>
+        </Button>
       </div>
 
-      <div className="rounded-md border border-border bg-card overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Judul Halaman</TableHead>
-              <TableHead>URL (Slug)</TableHead>
-              <TableHead>Template</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center h-24">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : pages.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center h-24 text-muted-foreground"
-                >
-                  Belum ada halaman. Silakan buat baru.
-                </TableCell>
-              </TableRow>
-            ) : (
-              pages.map((page) => (
-                <TableRow
-                  key={page.id}
-                  className="hover:bg-muted/50 transition-colors"
-                >
-                  <TableCell className="font-medium">{page.title}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    /{page.slug}
-                  </TableCell>
-                  <TableCell className="capitalize">
-                    {page.template_name}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        page.status === "published" ? "default" : "secondary"
-                      }
-                      className={
-                        page.status === "published"
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      }
-                    >
-                      {page.status === "published" ? "Publik" : "Draf"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    {/* 🌟 TOMBOL EDIT: Mengarah ke rute dinamis /[id]/edit */}
-                    <Link href={`/pages/${page.id}/edit`}>
-                      <Button variant="outline" size="icon" title="Edit">
-                        <Edit className="h-4 w-4 text-foreground/70" />
-                      </Button>
-                    </Link>
+      {/* 🌟 FILTER BAR */}
+      <div className="bg-card border border-border rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center shadow-sm">
+        <div className="relative w-full md:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari judul atau URL..."
+            className="pl-9 bg-background rounded-xl"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
 
-                    {/* 🌟 TOMBOL DELETE: Membuka Modal */}
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      title="Hapus"
-                      className="hover:text-destructive hover:border-destructive"
-                      onClick={() => confirmDelete(page.id, page.title)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+        <Select
+          value={statusFilter}
+          onValueChange={(val) => {
+            setStatusFilter(val);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full md:w-[180px] rounded-xl bg-background">
+            <SelectValue placeholder="Semua Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            <SelectItem value="published">Dipublikasi</SelectItem>
+            <SelectItem value="draft">Draf</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {(search || statusFilter !== "all") && (
+          <Button
+            variant="ghost"
+            onClick={resetFilters}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <FilterX className="w-4 h-4 mr-2" /> Reset
+          </Button>
+        )}
+      </div>
+
+      {/* 🌟 TABEL DATA */}
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-20 text-muted-foreground">
+            <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
+            <p>Memuat halaman...</p>
+          </div>
+        ) : filteredPages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-20 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">
+              Halaman tidak ditemukan
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Coba ubah kata kunci pencarian atau buat halaman baru.
+            </p>
+          </div>
+        ) : (
+          <>
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent border-b-border">
+                  <TableHead className="py-4 pl-6 font-semibold text-foreground w-[35%]">
+                    Judul Halaman
+                  </TableHead>
+                  <TableHead className="py-4 font-semibold text-foreground">
+                    Template
+                  </TableHead>
+                  <TableHead className="py-4 font-semibold text-foreground">
+                    Status
+                  </TableHead>
+                  <TableHead className="py-4 font-semibold text-foreground">
+                    Dibuat Pada
+                  </TableHead>
+                  <TableHead className="py-4 pr-6 text-right font-semibold text-foreground">
+                    Aksi
+                  </TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {currentPages.map((pageData) => (
+                  <TableRow
+                    key={pageData.id}
+                    className="hover:bg-muted/30 transition-colors border-b-border/50 group"
+                  >
+                    <TableCell className="py-4 pl-6">
+                      <p className="font-semibold text-foreground text-base line-clamp-1">
+                        {pageData.title}
+                      </p>
+                      <p className="text-muted-foreground font-mono text-xs mt-1 truncate max-w-[250px]">
+                        /{pageData.slug}
+                      </p>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 capitalize">
+                        {pageData.template_name?.replace("_", " ")}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                          pageData.status === "published"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {pageData.status === "published" ? "Publik" : "Draf"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4 text-sm text-muted-foreground">
+                      {formatDate(pageData.created_at)}
+                    </TableCell>
+                    <TableCell className="py-4 pr-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 hover:bg-blue-50 rounded-lg h-9 w-9 p-0"
+                          title="Edit Halaman"
+                        >
+                          <Link href={`/pages/${pageData.id}/edit`}>
+                            <Edit2 className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            confirmDelete(pageData.id, pageData.title)
+                          }
+                          className="text-destructive hover:bg-destructive/10 rounded-lg h-9 w-9 p-0"
+                          title="Hapus Halaman"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* 🌟 PAGINATION CONTROLS */}
+            <div className="flex items-center justify-between px-6 py-4 bg-muted/10 border-t border-border">
+              <span className="text-sm text-muted-foreground">
+                Menampilkan{" "}
+                <span className="font-medium text-foreground">
+                  {currentPages.length}
+                </span>{" "}
+                dari{" "}
+                <span className="font-medium text-foreground">
+                  {filteredPages.length}
+                </span>{" "}
+                halaman
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl h-9 px-4"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || isLoading}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+                </Button>
+                <div className="text-sm font-medium px-4">
+                  Halaman {page} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl h-9 px-4"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages || isLoading}
+                >
+                  Next <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* 🌟 MODAL KONFIRMASI HAPUS */}
@@ -188,23 +349,27 @@ export default function PagesIndex() {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Halaman?</AlertDialogTitle>
             <AlertDialogDescription>
               Tindakan ini akan menyembunyikan halaman{" "}
-              <strong>"{pageToDelete?.title}"</strong> dari publik. Data tidak
-              akan hilang secara permanen berkat fitur Soft Delete.
+              <strong className="text-foreground">
+                "{pageToDelete?.title}"
+              </strong>{" "}
+              dari publik. Data tidak akan hilang secara permanen (Soft Delete).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">
+              Batal
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
-                e.preventDefault(); // Mencegah modal tertutup instan sebelum API selesai
+                e.preventDefault();
                 handleDelete();
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl"
               disabled={isDeleting}
             >
               {isDeleting ? (
