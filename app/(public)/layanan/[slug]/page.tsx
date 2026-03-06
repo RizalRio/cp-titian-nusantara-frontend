@@ -133,6 +133,13 @@ export default function LayananDetailPage() {
         )}
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center flex flex-col items-center">
+          <Link
+            href="/layanan"
+            className="inline-flex items-center rounded-full border border-white/30 bg-white/20 px-4 py-1.5 text-sm font-medium text-white mb-6 backdrop-blur-sm hover:bg-white/40 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Kembali ke Ekosistem Layanan
+          </Link>
           <motion.h1
             initial="hidden"
             animate="visible"
@@ -214,53 +221,6 @@ export default function LayananDetailPage() {
         `}</style>
       </section>
 
-      {/* 🌟 3. DAMPAK YANG DIHASILKAN */}
-      {service.impact_points && service.impact_points.length > 0 && (
-        <section className="bg-background py-24 border-y border-border">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={fadeInUp}
-              className="mb-16 max-w-3xl"
-            >
-              <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
-                <Target className="w-8 h-8 text-primary" /> Dampak yang
-                Dihasilkan
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Perubahan nyata dan terukur yang menjadi target serta telah
-                terwujud melalui ekosistem ini.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={staggerContainer}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {service.impact_points.map((impact, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  className="bg-card p-8 rounded-[32px] border border-border hover:shadow-md hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4"
-                >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-7 h-7 text-primary" />
-                  </div>
-                  <p className="text-foreground leading-relaxed font-medium text-lg">
-                    {impact}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-      )}
-
       {/* 🌟 4. CONTOH PROGRAM */}
       <section className="py-24 max-w-7xl mx-auto px-4 lg:px-8">
         <motion.div
@@ -341,6 +301,53 @@ export default function LayananDetailPage() {
           </motion.div>
         )}
       </section>
+
+      {/* 🌟 3. DAMPAK YANG DIHASILKAN */}
+      {service.impact_points && service.impact_points.length > 0 && (
+        <section className="bg-background py-24 border-y border-border">
+          <div className="max-w-7xl mx-auto px-4 lg:px-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={fadeInUp}
+              className="mb-16 max-w-3xl"
+            >
+              <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
+                <Target className="w-8 h-8 text-primary" /> Dampak yang
+                Dihasilkan
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Perubahan nyata dan terukur yang menjadi target serta telah
+                terwujud melalui ekosistem ini.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {service.impact_points.map((impact, index) => (
+                <motion.div
+                  key={index}
+                  variants={fadeInUp}
+                  className="bg-card p-8 rounded-[32px] border border-border hover:shadow-md hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4"
+                >
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-7 h-7 text-primary" />
+                  </div>
+                  <p className="text-foreground leading-relaxed font-medium text-lg">
+                    {impact}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* 🌟 5. CTA KOLABORASI */}
       <section className="max-w-5xl mx-auto px-4 lg:px-8 pt-10">

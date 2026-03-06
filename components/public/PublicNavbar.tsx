@@ -14,45 +14,11 @@ export function PublicNavbar() {
     null,
   );
 
-  // STATE UNTUK LAYANAN DINAMIS
-  const [serviceLinks, setServiceLinks] = useState<
-    { name: string; href: string }[]
-  >([]);
-
-  // FETCH DATA LAYANAN DARI DATABASE
-  useEffect(() => {
-    const fetchDynamicServices = async () => {
-      try {
-        // CATATAN: Sesuaikan endpoint ini dengan backend Golang Anda.
-        const res = await api.get("/api/v1/services");
-
-        // Jika data berhasil ditarik dan ada isinya
-        if (res.data && res.data.data && res.data.data.length > 0) {
-          const dynamicLinks = res.data.data.map((service: any) => ({
-            name: service.name,
-            href: `/layanan/${service.slug}`, // Langsung menggunakan slug dari database
-          }));
-          setServiceLinks(dynamicLinks);
-        }
-      } catch (error) {
-        console.error("Gagal memuat menu layanan dinamis:", error);
-        // Jika gagal, sistem akan tetap menampilkan data fallback di atas
-      }
-    };
-
-    fetchDynamicServices();
-  }, []);
-
   // Menu sesuai wireframe Titian Nusantara
   const navLinks = [
     { name: "HOME", href: "/beranda-utama" },
     { name: "TENTANG KAMI", href: "/tentang-kami" },
-    {
-      name: "LAYANAN",
-      href: "/layanan",
-      // Dropdown hanya aktif & muncul jika data layanan dari database sudah berhasil ditarik
-      ...(serviceLinks.length > 0 && { subLinks: serviceLinks }),
-    },
+    { name: "LAYANAN", href: "/layanan" },
     {
       name: "KOLABORASI",
       href: "/kolaborasi",

@@ -5,15 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  MapPin,
-  Target,
-  LayoutTemplate,
   Quote,
   Images,
   Sprout,
   X,
   ChevronLeft,
   ChevronRight,
+  MapPin,
+  MapPinned,
 } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -118,7 +117,6 @@ export default function JejakKaryaSektorPage() {
   // Handler Scroll Carousel Testimoni
   const scrollTestimonials = (direction: "left" | "right") => {
     if (carouselRef.current) {
-      // Menggeser kurang lebih sebesar 1 kartu
       const scrollAmount = direction === "left" ? -400 : 400;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
@@ -161,7 +159,7 @@ export default function JejakKaryaSektorPage() {
         }
       `}</style>
 
-      {/* 🌟 1. HERO SECTION */}
+      {/* 🌟 1. HERO SECTION (Tanpa Info Wilayah) */}
       <section className="relative w-full pt-32 pb-28 px-4 lg:px-8 bg-primary overflow-hidden text-center">
         <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/10 rounded-full blur-3xl pointer-events-none" />
@@ -192,22 +190,12 @@ export default function JejakKaryaSektorPage() {
           >
             {portfolio.title}
           </motion.h1>
-
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            className="inline-flex items-center bg-black/20 px-6 py-3 rounded-full backdrop-blur-md text-sm font-medium border border-white/10 text-primary-foreground/90"
-          >
-            <MapPin className="w-5 h-5 mr-3" /> Wilayah Konteks:{" "}
-            {portfolio.location}
-          </motion.div>
         </div>
       </section>
 
       {/* 🌟 2. THUMBNAIL UTAMA (Overlapping Hero) */}
       {thumbnail && (
-        <section className="max-w-5xl mx-auto px-4 lg:px-8 relative z-20 -mt-16 mb-20">
+        <section className="max-w-5xl mx-auto px-4 lg:px-8 relative z-20 -mt-16 mb-16">
           <motion.div
             initial="hidden"
             animate="visible"
@@ -223,56 +211,89 @@ export default function JejakKaryaSektorPage() {
         </section>
       )}
 
-      {/* 🌟 3. CERITA SINGKAT & DAMPAK (2 Kolom) */}
-      <section className="max-w-6xl mx-auto px-4 lg:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Kolom Kiri: Latar Belakang */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={fadeInUp}
-            className="bg-card border border-border rounded-[32px] p-8 lg:p-10 shadow-sm flex flex-col"
-          >
-            <div className="flex items-center gap-4 mb-6 border-b border-border pb-6">
-              <div className="p-3 bg-secondary/50 rounded-xl">
-                <LayoutTemplate className="w-6 h-6 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground">
-                Latar Belakang & Konteks
-              </h2>
-            </div>
-            <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-line flex-grow">
-              {portfolio.short_story}
-            </p>
-          </motion.div>
+      {/* 🌟 3. LATAR BELAKANG & KONTEKS (Gaya Editorial Bersih) */}
+      <section className="max-w-6xl mx-auto px-6 lg:px-8 py-16">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+        >
+          <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center">
+            Latar Belakang & Konteks
+          </h2>
+          {/* Garis pemanis estetika */}
+          <div className="w-20 h-1.5 bg-primary/80 rounded-full mb-8" />
 
-          {/* Kolom Kanan: Dampak */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={fadeInUp}
-            className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 lg:p-10 shadow-sm flex flex-col"
-          >
-            <div className="flex items-center gap-4 mb-6 border-b border-primary/10 pb-6">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Target className="w-6 h-6 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground">
-                Dampak yang Terwujud
-              </h2>
-            </div>
-            <p className="text-lg text-primary/80 font-medium leading-relaxed whitespace-pre-line flex-grow">
-              {portfolio.impact}
-            </p>
-          </motion.div>
-        </div>
+          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed whitespace-pre-line">
+            {portfolio.short_story}
+          </p>
+        </motion.div>
       </section>
 
-      {/* 🌟 4. TESTIMONI (DINAMIS & KARTU DIPERKECIL) */}
+      {/* 🌟 4. DAMPAK YANG TERWUJUD (Terbuka, Tanpa Card) */}
+      <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+        >
+          <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center">
+            Dampak yang Terwujud
+          </h2>
+          {/* Garis pemanis estetika */}
+          <div className="w-20 h-1.5 bg-primary/80 rounded-full mb-8" />
+
+          {/* Teks dampak dibuat sedikit lebih besar dan kontras agar terlihat penting */}
+          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed whitespace-pre-line">
+            {portfolio.impact}
+          </p>
+        </motion.div>
+      </section>
+
+      {/* 🌟 5. WILAYAH KONTEKS (Peta Lokasi) */}
+      {portfolio.location && (
+        <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl font-bold text-foreground mb-6 flex items-center">
+              Wilayah Konteks
+            </h2>
+            <div className="w-20 h-1.5 bg-primary/80 rounded-full mb-8" />
+
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed whitespace-pre-line mb-8 flex items-center gap-3">
+              <MapPinned className="text-primary w-6 h-6" />
+              Lokasi Implementasi:{" "}
+              <strong className="text-foreground">{portfolio.location}</strong>
+            </p>
+
+            {/* IFRAME GOOGLE MAPS OTOMATIS */}
+            <div className="w-full aspect-video md:aspect-[21/9] rounded-[32px] overflow-hidden border border-border shadow-sm bg-secondary/30 relative">
+              <iframe
+                title="Peta Lokasi"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                // URL Dinamis ini akan otomatis mencari string lokasi dan menaruh pin di sana
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                  portfolio.location,
+                )}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+              ></iframe>
+            </div>
+          </motion.div>
+        </section>
+      )}
+
+      {/* 🌟 6. TESTIMONI (DINAMIS) */}
       {portfolio.testimonials && portfolio.testimonials.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-20 mt-10">
+        <section className="max-w-6xl mx-auto px-4 lg:px-8 pb-20 border-t border-border pt-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <motion.div
               initial="hidden"
@@ -291,7 +312,6 @@ export default function JejakKaryaSektorPage() {
               </p>
             </motion.div>
 
-            {/* Tombol Navigasi Muncul Hanya Jika Mode Carousel */}
             {isCarousel && (
               <motion.div
                 initial="hidden"
@@ -325,22 +345,19 @@ export default function JejakKaryaSektorPage() {
             className={
               isCarousel
                 ? "flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar scroll-smooth"
-                : // Mengubah grid menjadi flex agar bisa diatur lebar fix-nya
-                  "flex flex-col md:flex-row flex-wrap gap-6 md:gap-8"
+                : "flex flex-col md:flex-row flex-wrap gap-6 md:gap-8"
             }
           >
             {portfolio.testimonials.map((testi, idx) => (
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                // 👇 PENGATURAN LEBAR KARTU YANG LEBIH RINGKAS 👇
                 className={`bg-card p-8 lg:p-10 rounded-[32px] border border-border shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col ${
                   isCarousel
                     ? "w-[85vw] sm:w-[380px] max-w-[400px] snap-start shrink-0"
                     : "w-full md:w-[400px] max-w-full"
                 }`}
               >
-                {/* Watermark Quote */}
                 <Quote className="absolute top-6 right-6 w-24 h-24 text-primary/5 group-hover:text-primary/10 transition-colors -rotate-12 pointer-events-none" />
 
                 <p className="text-lg text-foreground italic leading-relaxed mb-10 relative z-10 flex-grow">
@@ -378,9 +395,9 @@ export default function JejakKaryaSektorPage() {
         </section>
       )}
 
-      {/* 🌟 5. GALERI FOTO */}
+      {/* 🌟 7. GALERI FOTO */}
       {gallery.length > 0 && (
-        <section className="bg-background py-24 border-t border-border mt-10">
+        <section className="bg-background py-24 border-t border-border">
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
             <motion.div
               initial="hidden"
@@ -425,7 +442,7 @@ export default function JejakKaryaSektorPage() {
         </section>
       )}
 
-      {/* 🌟 6. LIGHTBOX / OVERLAY MODAL */}
+      {/* 🌟 8. LIGHTBOX / OVERLAY MODAL */}
       <AnimatePresence>
         {selectedImageIndex !== null && (
           <motion.div
@@ -436,7 +453,6 @@ export default function JejakKaryaSektorPage() {
             className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-xl p-4 md:p-8"
             onClick={() => setSelectedImageIndex(null)}
           >
-            {/* Tombol Close */}
             <button
               onClick={() => setSelectedImageIndex(null)}
               className="absolute top-6 right-6 md:top-8 md:right-8 p-3 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-colors z-50 group"
@@ -444,7 +460,6 @@ export default function JejakKaryaSektorPage() {
               <X className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-90 transition-transform" />
             </button>
 
-            {/* Tombol Panah Kiri */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -457,7 +472,6 @@ export default function JejakKaryaSektorPage() {
               <ChevronLeft className="w-8 h-8" />
             </button>
 
-            {/* Kontainer Gambar Besar */}
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
@@ -476,7 +490,6 @@ export default function JejakKaryaSektorPage() {
               </p>
             </motion.div>
 
-            {/* Tombol Panah Kanan */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
