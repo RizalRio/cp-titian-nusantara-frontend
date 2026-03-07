@@ -3,10 +3,10 @@
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, User as UserIcon, LogOut, Loader2 } from "lucide-react";
 import React, { useState } from "react";
-import { toast } from "sonner"; // Tambahkan toast untuk notifikasi
+import { toast } from "sonner";
 import Link from "next/link";
 
-import api from "@/lib/api"; // 🌟 Import API instance
+import api from "@/lib/api";
 import { useUIStore } from "@/store/useUIStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -35,27 +35,19 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // 🌟 State untuk efek loading saat proses logout
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // 🌟 LOGIKA LOGOUT BARU
   const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Mencegah dropdown menutup instan jika kita ingin efek loading
+    e.preventDefault();
     setIsLoggingOut(true);
 
     try {
-      // 1. Tembak API Backend agar Log Aktivitas tercatat
       await api.post("/api/v1/admin/auth/logout");
-
-      // 2. Bersihkan state lokal (Zustand) & hapus cookie/localStorage
       logout();
-
-      // 3. Beri notifikasi dan redirect
       toast.success("Berhasil keluar dari sistem.");
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
-      // Meskipun API gagal, kita tetap harus membersihkan sesi lokal agar user tidak nyangkut
       logout();
       router.push("/login");
     } finally {
@@ -63,23 +55,35 @@ export function Navbar() {
     }
   };
 
-  // Logika Breadcrumb Dinamis ("dashboard/pages" -> ["Dashboard", "Pages"])
+  // 🌟 LOGIKA BREADCRUMB YANG DISEMPURNAKAN
   const paths = pathname.split("/").filter((path) => path);
 
+  const formatBreadcrumbTitle = (text: string) => {
+    if (text.toLowerCase() === "admin") return "Dashboard";
+    // Mengubah "activity-logs" menjadi "Activity Logs"
+    return text
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
-    <header className="h-16 flex items-center justify-between px-4 lg:px-6 bg-card border-b border-border sticky top-0 z-10 shadow-sm">
+    <header className="h-16 flex items-center justify-between px-4 lg:px-6 bg-card border-b border-border sticky top-0 z-10">
       <div className="flex items-center gap-4">
         {/* Tombol Toggle Sidebar */}
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="shrink-0 text-muted-foreground hover:text-foreground"
+          className="shrink-0 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors rounded-xl h-10 w-10"
         >
           <Menu className="w-5 h-5" />
         </Button>
 
-        <Separator orientation="vertical" className="h-6 hidden md:block" />
+        <Separator
+          orientation="vertical"
+          className="h-6 hidden md:block bg-border"
+        />
 
         {/* Breadcrumb Dinamis */}
         <Breadcrumb className="hidden md:flex">
@@ -87,20 +91,27 @@ export function Navbar() {
             {paths.map((path, index) => {
               const href = `/${paths.slice(0, index + 1).join("/")}`;
               const isLast = index === paths.length - 1;
-              const title = path.charAt(0).toUpperCase() + path.slice(1);
+              const title = formatBreadcrumbTitle(path);
 
               return (
                 <React.Fragment key={path}>
                   <BreadcrumbItem>
                     {isLast ? (
-                      <BreadcrumbPage className="font-semibold text-primary">
+                      <BreadcrumbPage className="font-semibold text-primary tracking-tight">
                         {title}
                       </BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink href={href}>{title}</BreadcrumbLink>
+                      <BreadcrumbLink
+                        href={href}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {title}
+                      </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
-                  {!isLast && <BreadcrumbSeparator />}
+                  {!isLast && (
+                    <BreadcrumbSeparator className="text-muted-foreground/50" />
+                  )}
                 </React.Fragment>
               );
             })}
@@ -111,43 +122,55 @@ export function Navbar() {
       {/* Profil Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10 border border-border">
-              <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                {user?.name?.charAt(0) || "A"}
+          <Button
+            variant="ghost"
+            className="relative h-10 w-10 rounded-full hover:bg-primary/10 transition-colors"
+          >
+            <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
+              <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
+                {user?.name?.charAt(0).toUpperCase() || "A"}
               </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
+        <DropdownMenuContent
+          className="w-60 rounded-2xl p-2"
+          align="end"
+          forceMount
+        >
+          <DropdownMenuLabel className="font-normal p-2">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
+              <p className="text-sm font-bold leading-none text-foreground">
                 {user?.name || "Administrator"}
               </p>
-              <p className="text-xs leading-none text-muted-foreground">
+              <p className="text-xs leading-none text-muted-foreground mt-1">
                 {user?.email || "admin@titian.id"}
               </p>
             </div>
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer" asChild>
+          <DropdownMenuSeparator className="my-1" />
+          <DropdownMenuItem
+            className="cursor-pointer rounded-xl p-2.5 focus:bg-primary/10 focus:text-primary transition-colors"
+            asChild
+          >
             <Link href="/admin/profile">
               <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profil Saya</span>
+              <span className="font-medium">Profil Saya</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+            className="cursor-pointer rounded-xl p-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 transition-colors mt-1"
             onClick={handleLogout}
-            disabled={isLoggingOut} // Mencegah double click
+            disabled={isLoggingOut}
           >
             {isLoggingOut ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <LogOut className="mr-2 h-4 w-4" />
             )}
-            <span>{isLoggingOut ? "Keluar..." : "Keluar"}</span>
+            <span className="font-medium">
+              {isLoggingOut ? "Sedang keluar..." : "Keluar Sistem"}
+            </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

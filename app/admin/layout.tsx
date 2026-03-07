@@ -23,6 +23,8 @@ export default function AdminLayout({
     setIsMounted(true);
   }, []);
 
+  // Catatan: Jika halaman login ada di (auth)/login, layout ini tidak akan terpanggil di sana.
+  // Tapi pengecekan ini tetap aman sebagai lapis keamanan tambahan.
   useEffect(() => {
     if (isMounted && !token && pathname !== "/login") {
       router.push("/login");
@@ -32,7 +34,7 @@ export default function AdminLayout({
   if (!isMounted)
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="animate-spin text-primary" />
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
       </div>
     );
 
@@ -42,21 +44,25 @@ export default function AdminLayout({
 
   if (token) {
     return (
-      <div className="flex min-h-screen bg-background text-foreground font-sans">
+      <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
         {/* Sidebar Kiri */}
         <Sidebar />
 
         {/* Area Utama Kanan */}
-        <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+        <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
           {/* Top Navbar */}
           <Navbar />
 
-          {/* Konten Dinamis (Pages) */}
-          <main className="flex-1 overflow-y-auto bg-background/50 p-6 md:p-8">
-            <div className="mx-auto max-w-7xl">{children}</div>
+          {/* 🌟 PERBAIKAN: Area Gulir (Scroll Area) */}
+          <div className="flex-1 overflow-y-auto bg-background/50 flex flex-col">
+            {/* Konten Dinamis (Pages) diberi flex-1 agar mendorong Footer ke bawah jika konten sedikit */}
+            <main className="flex-1 w-full p-6 md:p-8 mx-auto max-w-7xl">
+              {children}
+            </main>
 
+            {/* Footer kini berada sejajar dengan main, di dalam area scroll, TANPA terpotong padding */}
             <Footer />
-          </main>
+          </div>
         </div>
       </div>
     );
