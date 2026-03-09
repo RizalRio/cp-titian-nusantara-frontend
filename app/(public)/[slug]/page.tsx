@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { HomeTemplate } from "@/components/templates/HomeTemplate";
 import { AboutTemplate } from "@/components/templates/AboutTemplate";
+import { CollaborationTemplate } from "@/components/templates/CollaborationTemplate";
+import { ModelKolaborasiTemplate } from "@/components/templates/ModelKolaborasiTemplate";
+import { ProposalKerjasamaTemplate } from "@/components/templates/ProposalKerjasamaTemplate";
 
 async function getPageData(slug: string) {
   try {
@@ -59,6 +62,15 @@ export default async function DynamicPage({
 
     case "about":
       return <AboutTemplate content={page.content_json} />;
+
+    case "collaboration":
+      return <CollaborationTemplate data={page.content_json} />;
+
+    case "collaboration-model":
+      return <ModelKolaborasiTemplate data={page.content_json} />;
+
+    case "proposal":
+      return <ProposalKerjasamaTemplate data={page.content_json} />;
 
     default:
       return (

@@ -23,8 +23,8 @@ export function PublicNavbar() {
       name: "KOLABORASI",
       href: "/kolaborasi",
       subLinks: [
-        { name: "Institusi Publik", href: "/institusi-publik" },
-        { name: "Mitra & Industri", href: "/mitra-industri" },
+        { name: "Institusi Publik", href: "/kolaborasi/institusi-publik" },
+        { name: "Mitra & Industri", href: "/kolaborasi/mitra-industri" },
         { name: "Model Kolaborasi", href: "/model-kolaborasi" },
         {
           name: "Proposal & Kerjasama",
