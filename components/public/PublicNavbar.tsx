@@ -48,7 +48,7 @@ export function PublicNavbar() {
   }, []);
 
   const navLinks = [
-    { name: "HOME", href: "/beranda-utama" },
+    { name: "HOME", href: "/beranda" },
     { name: "TENTANG KAMI", href: "/tentang-kami" },
     { name: "LAYANAN", href: "/layanan" },
     {
@@ -74,7 +74,7 @@ export function PublicNavbar() {
       <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
         {/* 🌟 Logo & Site Name Dinamis */}
         <Link
-          href="/beranda-utama"
+          href="/beranda"
           className="flex items-center gap-3 group outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
         >
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shadow-sm">
