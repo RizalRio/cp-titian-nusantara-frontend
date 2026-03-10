@@ -8,7 +8,6 @@ import {
   Layers,
   Leaf,
   Network,
-  Target,
   Handshake,
   MessageCircleQuestion,
   Plus,
@@ -16,6 +15,7 @@ import {
   Shield,
   Compass,
   Heart,
+  Target,
   Lightbulb,
   ClipboardCheck,
   HeartPulse,
@@ -88,20 +88,21 @@ export default function LayananIndexPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans pb-0">
-      {/* 🌟 1. HERO SECTION */}
-      <section className="relative pt-16 pb-24 px-6 lg:px-12 bg-secondary/30 text-center overflow-hidden border-b border-border">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-secondary/50 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#F9F9F7] dark:bg-background text-foreground font-sans">
+      {/* 🌟 1. HERO SECTION (Organic, Soft Blend) */}
+      <section className="relative pt-40 pb-28 px-4 lg:px-8 overflow-hidden text-center border-b border-border/40">
+        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none"></div>
+        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-secondary/30 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-4xl mx-auto mt-10">
+        <div className="relative z-10 max-w-4xl mx-auto">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-bold text-primary mb-8 shadow-sm backdrop-blur-sm uppercase tracking-widest"
+            className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-[11px] font-bold text-primary mb-8 shadow-sm backdrop-blur-sm uppercase tracking-[0.2em]"
           >
-            <Network className="w-4 h-4 mr-2" />
+            <Network className="w-3.5 h-3.5 mr-2.5" />
             Ekosistem Layanan
           </motion.div>
 
@@ -109,10 +110,9 @@ export default function LayananIndexPage() {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-foreground tracking-tight leading-[1.1] mb-8"
+            className="text-5xl md:text-6xl lg:text-[4.5rem] font-extrabold text-foreground tracking-tight leading-[1.1] mb-8 text-balance mx-auto"
           >
-            Jembatan Menuju <br className="hidden md:block" /> Perubahan
-            Inklusif
+            Jembatan Menuju Perubahan Inklusif.
           </motion.h1>
 
           <motion.p
@@ -123,26 +123,27 @@ export default function LayananIndexPage() {
           >
             Jelajahi berbagai ruang inisiatif kami. Setiap ekosistem dirancang
             secara khusus untuk memberdayakan, mengedukasi, dan menciptakan
-            dampak berkelanjutan bagi masyarakat luas.
+            dampak berkelanjutan.
           </motion.p>
         </div>
       </section>
 
-      {/* 🌟 2. NARASI / PENDEKATAN KAMI */}
-      <section className="py-24 px-6 lg:px-12 max-w-7xl mx-auto relative z-20">
+      {/* 🌟 2. NARASI / PENDEKATAN KAMI (Bento-style Cards) */}
+      <section className="py-32 px-4 lg:px-8 max-w-7xl mx-auto relative z-20">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           variants={fadeInUp}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Pendekatan Holistik Kami
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
+            Pendekatan Holistik
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <div className="w-16 h-1 bg-primary rounded-full mx-auto mb-6"></div>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Kami membangun ekosistem pengembangan potensi dan kesejahteraan yang
-            terintegrasi. Setiap layanan kami didasari oleh tiga pilar utama:
+            terintegrasi, didasari oleh tiga pilar utama.
           </p>
         </motion.div>
 
@@ -157,31 +158,32 @@ export default function LayananIndexPage() {
             {
               icon: ClipboardCheck,
               title: "Asesmen Berbasis Data",
-              desc: "Memanfaatkan instrumen teruji seperti Tes Minat Karir, Tes ION, hingga pemetaan kesiapan pekerja migran untuk individu, sekolah, dan desa.",
+              desc: "Memanfaatkan instrumen teruji (Tes Minat Karir, Tes ION, Kesiapan PMI) untuk memetakan potensi individu hingga desa secara akurat.",
             },
             {
               icon: HeartPulse,
-              title: "Kesejahteraan Mental Terpadu",
-              desc: "Menyediakan ruang aman pemantauan emosi, pelacakan gaya hidup, hingga konsultasi profesional (psikolog/psikiater) melalui Wellbeing Project Nusantara.",
+              title: "Kesejahteraan Terpadu",
+              desc: "Menyediakan ruang aman pemantauan emosi, pelacakan gaya hidup, hingga konsultasi profesional via Wellbeing Project Nusantara.",
             },
             {
               icon: Handshake,
               title: "Sinergi Lintas Sektor",
-              desc: "Menghubungkan elemen individu, organisasi swasta, pemerintah, hingga komunitas agar tercipta perubahan kebijakan dan dampak yang berkelanjutan.",
+              desc: "Menghubungkan elemen individu, organisasi swasta, pemerintah, dan komunitas untuk menciptakan kebijakan berdampak jangka panjang.",
             },
           ].map((item, idx) => (
             <motion.div
               key={idx}
               variants={fadeInUp}
-              className="bg-card p-8 rounded-[32px] border border-border shadow-sm text-center flex flex-col items-center hover:-translate-y-2 transition-transform duration-300"
+              className="bg-card p-10 rounded-[2.5rem] border border-border shadow-sm text-center flex flex-col items-center group hover:shadow-xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden"
             >
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6">
-                <item.icon className="w-8 h-8" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 relative z-10">
+                <item.icon className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-4">
+              <h3 className="text-2xl font-bold text-foreground mb-4 relative z-10">
                 {item.title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed relative z-10">
                 {item.desc}
               </p>
             </motion.div>
@@ -189,21 +191,21 @@ export default function LayananIndexPage() {
         </motion.div>
       </section>
 
-      {/* 🌟 3. KARTU DAFTAR LAYANAN */}
-      <section className="py-24 bg-secondary/10 px-6 lg:px-8 border-y border-border">
+      {/* 🌟 3. KARTU DAFTAR LAYANAN (Dinamis dari API) */}
+      <section className="py-32 bg-secondary/10 px-4 lg:px-8 border-y border-border">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
             variants={fadeInUp}
-            className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6"
+            className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8"
           >
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3 mb-4">
-                <Layers className="text-primary w-8 h-8" /> Pilihan Ruang Gerak
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground flex items-center gap-4 mb-6">
+                Pilihan Ruang Gerak
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl">
+              <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
                 Temukan layanan spesifik yang sesuai dengan kebutuhan
                 pengembangan organisasi, komunitas, maupun diri Anda.
               </p>
@@ -211,9 +213,9 @@ export default function LayananIndexPage() {
           </motion.div>
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 bg-card rounded-[40px] shadow-sm border border-border">
+            <div className="flex flex-col items-center justify-center py-32 bg-card rounded-[3rem] shadow-sm border border-border">
               <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-              <p className="text-primary font-medium">
+              <p className="text-primary font-medium tracking-wide">
                 Memetakan ekosistem layanan...
               </p>
             </div>
@@ -222,7 +224,7 @@ export default function LayananIndexPage() {
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
-              className="text-center py-24 bg-card rounded-[40px] border border-border shadow-sm"
+              className="text-center py-32 bg-card rounded-[3rem] border border-border border-dashed shadow-sm"
             >
               <Layers className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-foreground mb-2">
@@ -237,8 +239,7 @@ export default function LayananIndexPage() {
               initial="hidden"
               animate="visible"
               variants={staggerContainer}
-              // 👇 PENGATURAN FLEXBOX AGAR KARTU BERADA DI TENGAH JIKA SEDIKIT 👇
-              className="flex flex-wrap justify-center gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {services.map((layanan, idx) => {
                 const thumbnail = layanan.media?.find(
@@ -250,41 +251,43 @@ export default function LayananIndexPage() {
                   <motion.div
                     key={layanan.id}
                     variants={fadeInUp}
-                    // 👇 KALKULASI LEBAR FIX AGAR SAMA SEPERTI GRID (3 Kolom) 👇
-                    className="w-full md:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] flex flex-col"
+                    className="h-full"
                   >
                     <Link
                       href={`/layanan/${layanan.slug}`}
-                      className="group flex flex-col h-full bg-card rounded-[32px] overflow-hidden border border-border shadow-md hover:shadow-2xl hover:border-primary/30 hover:-translate-y-2 transition-all duration-500 w-full"
+                      className="group flex flex-col h-full bg-card rounded-[2.5rem] overflow-hidden border border-border shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-500 p-4 relative"
                     >
-                      {/* Bagian Gambar */}
-                      <div className="w-full h-32 md:h-40 bg-muted relative overflow-hidden flex items-center justify-center shrink-0">
-                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+                      {/* Bagian Gambar (Rounded di dalam kartu) */}
+                      <div className="w-full aspect-[4/3] bg-muted rounded-[2rem] relative overflow-hidden flex items-center justify-center shrink-0 mb-6">
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-overlay" />
                         {thumbnail ? (
                           <img
                             src={thumbnail}
                             alt={layanan.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                           />
                         ) : (
-                          <FallbackIcon className="w-20 h-20 text-primary/20 group-hover:scale-110 transition-transform duration-500" />
+                          <div className="w-full h-full bg-secondary/30 flex items-center justify-center relative">
+                            <div className="absolute w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors" />
+                            <FallbackIcon className="w-16 h-16 text-primary/30 group-hover:scale-110 transition-transform duration-500 relative z-10" />
+                          </div>
                         )}
                       </div>
 
-                      <div className="p-6 md:p-8 flex flex-col flex-grow bg-card relative z-20">
-                        <h3 className="text-xl md:text-2xl font-extrabold text-foreground mb-3 group-hover:text-primary transition-colors">
+                      <div className="px-4 pb-4 flex flex-col flex-grow">
+                        <h3 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors line-clamp-2 leading-[1.2]">
                           {layanan.name}
                         </h3>
 
-                        <p className="text-muted-foreground leading-relaxed mb-6 line-clamp-3">
+                        <p className="text-muted-foreground leading-relaxed mb-8 line-clamp-3 flex-grow">
                           {layanan.short_description ||
                             "Pelajari lebih lanjut mengenai ekosistem layanan ini dan dampaknya bagi masyarakat."}
                         </p>
 
-                        <div className="mt-auto flex justify-between items-center pt-5 border-t border-border">
-                          <div className="inline-flex items-center text-primary font-bold text-sm tracking-wide uppercase">
-                            Jelajahi Layanan
-                          </div>
+                        <div className="mt-auto flex justify-between items-center pt-5 border-t border-border/50">
+                          <span className="font-bold text-sm tracking-widest uppercase text-primary">
+                            Jelajahi Program
+                          </span>
                           <div className="w-10 h-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all duration-300">
                             <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
                           </div>
@@ -299,24 +302,23 @@ export default function LayananIndexPage() {
         </div>
       </section>
 
-      {/* 🌟 4. FAQ SECTION */}
-      <section className="py-24 px-6 lg:px-12 max-w-4xl mx-auto">
+      {/* 🌟 4. FAQ SECTION (Minimalist Accordion) */}
+      <section className="py-32 px-4 lg:px-8 max-w-4xl mx-auto">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           variants={fadeInUp}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <div className="w-16 h-16 mx-auto bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6">
+          <div className="w-16 h-16 mx-auto bg-secondary text-primary rounded-2xl flex items-center justify-center mb-6">
             <MessageCircleQuestion className="w-8 h-8" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Pertanyaan Seputar Layanan
+          <h2 className="text-4xl font-bold tracking-tight text-foreground mb-4">
+            Pusat Bantuan Cepat
           </h2>
-          <p className="text-lg text-muted-foreground">
-            Temukan jawaban atas beberapa pertanyaan yang paling sering
-            ditanyakan oleh mitra dan pengguna layanan kami.
+          <p className="text-xl text-muted-foreground">
+            Temukan jawaban atas pertanyaan yang sering diajukan.
           </p>
         </motion.div>
 
@@ -331,17 +333,21 @@ export default function LayananIndexPage() {
             <motion.div
               key={index}
               variants={fadeInUp}
-              className="bg-card border border-border rounded-3xl overflow-hidden transition-all duration-300"
+              className="bg-card border border-border rounded-3xl overflow-hidden transition-all duration-300 shadow-sm"
             >
               <button
                 onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                className="w-full px-8 py-6 text-left flex items-center justify-between focus:outline-none"
+                className="w-full px-6 py-6 md:px-8 md:py-7 text-left flex items-center justify-between focus:outline-none group"
               >
-                <span className="text-lg font-bold text-foreground pr-8">
+                <span className="text-[1.15rem] font-bold text-foreground pr-8 group-hover:text-primary transition-colors">
                   {faq.q}
                 </span>
                 <div
-                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${openFaq === index ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                    openFaq === index
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                  }`}
                 >
                   {openFaq === index ? (
                     <Minus className="w-5 h-5" />
@@ -359,7 +365,7 @@ export default function LayananIndexPage() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-8 pb-6 text-muted-foreground leading-relaxed border-t border-border pt-4 mt-2">
+                    <div className="px-6 md:px-8 pb-8 text-muted-foreground leading-[1.8] text-lg border-t border-border pt-6 mt-2">
                       {faq.a}
                     </div>
                   </motion.div>
@@ -371,31 +377,32 @@ export default function LayananIndexPage() {
       </section>
 
       {/* 🌟 5. CALL TO ACTION (CTA) */}
-      <section className="pb-32 px-6 lg:px-12 max-w-6xl mx-auto">
+      <section className="pb-32 px-4 lg:px-8 max-w-6xl mx-auto">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeInUp}
-          className="bg-primary rounded-[40px] p-10 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-primary/20"
+          className="bg-primary rounded-[3rem] p-10 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-primary/20"
         >
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+          {/* Latar CTA yang mewah */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent opacity-60" />
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center">
-            <h2 className="text-3xl md:text-5xl font-extrabold text-primary-foreground tracking-tight mb-6">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground tracking-tight mb-8 text-balance">
               Siap Merajut Dampak Bersama?
             </h2>
-            <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-2xl leading-relaxed">
+            <p className="text-xl text-primary-foreground/90 mb-12 max-w-2xl leading-relaxed font-medium">
               Diskusikan ide, kebutuhan asesmen, atau potensi kolaborasi
-              organisasi Anda. Mari ciptakan ekosistem yang berkelanjutan
-              bersama Titian Nusantara.
+              organisasi Anda. Mari ciptakan ekosistem inklusif bersama.
             </p>
             <Link
               href="/hubungi-kami"
-              className="inline-flex items-center px-10 py-5 bg-background text-primary text-lg font-bold rounded-full hover:scale-105 transition-transform duration-300 shadow-xl"
+              className="inline-flex items-center px-10 py-5 bg-background text-primary text-lg font-extrabold tracking-wide rounded-full hover:scale-105 transition-transform duration-300 shadow-xl"
             >
-              Hubungi Kami Sekarang
+              Mulai Percakapan
               <ArrowRight className="w-6 h-6 ml-3" />
             </Link>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
@@ -12,6 +12,7 @@ import {
   FileUp,
   MessageSquare,
   Globe,
+  AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,50 @@ export default function HubungiKamiPage() {
   const [activeTab, setActiveTab] = useState<"pesan" | "kolaborasi">("pesan");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // 🌟 State untuk Informasi Kontak Dinamis (Dari CMS)
+  const [contactInfo, setContactInfo] = useState({
+    address: "Jl. Nusantara No. 1, Jakarta, Indonesia",
+    email: "halo@titiannusantara.com",
+    phone: "+62 811 0000 0000",
+  });
+  const [isLoadingInfo, setIsLoadingInfo] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get("/api/v1/settings");
+        if (res.data.status === "success" && res.data.data) {
+          const data = res.data.data;
+
+          if (!Array.isArray(data)) {
+            setContactInfo((prev) => ({
+              ...prev,
+              email: data.email || prev.email,
+              address: data.address || prev.address,
+              phone: data.phone || prev.phone, // Asumsi ada field contact_phone
+            }));
+          } else {
+            const getVal = (key: string) =>
+              data.find((item: any) => item.key === key)?.value;
+            setContactInfo((prev) => ({
+              ...prev,
+              email: getVal("contact_email") || prev.email,
+              address: getVal("contact_address") || prev.address,
+              phone: getVal("contact_phone") || prev.phone,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Gagal memuat info kontak:", error);
+      } finally {
+        setIsLoadingInfo(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   // State Pesan Umum
   const [msgData, setMsgData] = useState({
@@ -47,12 +92,17 @@ export default function HubungiKamiPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setSuccessMsg("");
+    setErrorMsg("");
     try {
       await api.post("/api/v1/contact-messages", msgData);
-      setSuccessMsg("Pesan berhasil dikirim. Tim kami akan segera merespons.");
+      setSuccessMsg(
+        "Pesan berhasil dikirim. Tim kami akan segera merespons ke email Anda.",
+      );
       setMsgData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
-      alert("Gagal mengirim pesan. Silakan coba lagi.");
+      setErrorMsg(
+        "Gagal mengirim pesan. Pastikan koneksi internet Anda stabil dan coba lagi.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -62,10 +112,11 @@ export default function HubungiKamiPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setSuccessMsg("");
+    setErrorMsg("");
     try {
       await api.post("/api/v1/collaboration-requests", collabData);
       setSuccessMsg(
-        "Pengajuan kolaborasi diterima. Mari merajut dampak bersama!",
+        "Pengajuan kolaborasi diterima! Tim kemitraan kami akan segera menghubungi Anda.",
       );
       setCollabData({
         organization_name: "",
@@ -77,103 +128,122 @@ export default function HubungiKamiPage() {
         proposal_file_url: "",
       });
     } catch (error) {
-      alert("Gagal mengirim pengajuan. Silakan coba lagi.");
+      setErrorMsg(
+        "Gagal mengirim pengajuan kolaborasi. Silakan coba lagi nanti.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-secondary/10 text-foreground font-sans pb-32">
-      {/* 🌟 1. HERO SECTION */}
-      <section className="relative pt-32 pb-28 px-4 lg:px-8 bg-primary overflow-hidden text-center rounded-b-[40px] md:rounded-b-[80px]">
+    <div className="min-h-screen bg-[#F9F9F7] dark:bg-background text-foreground font-sans pb-32">
+      {/* 🌟 1. HERO SECTION (Organic & Texturized) */}
+      <section className="relative pt-40 pb-36 px-4 lg:px-8 bg-primary overflow-hidden text-center rounded-b-[3rem] md:rounded-b-[5rem] shadow-sm">
         {/* Ornamen Latar Belakang */}
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.05] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none"></div>
+        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] pointer-events-none animate-pulse-slow" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/20 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-3xl mx-auto relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground mb-8 tracking-tight leading-tight">
-              Sapa Kami, <br /> Rajut Kolaborasi
+            <h1 className="text-5xl md:text-6xl lg:text-[4.5rem] font-extrabold text-primary-foreground mb-8 tracking-tight leading-[1.1]">
+              Sapa Kami, <br /> Rajut Kolaborasi.
             </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/80 leading-relaxed max-w-2xl mx-auto font-medium">
+            <p className="text-lg md:text-xl text-primary-foreground/90 leading-relaxed max-w-2xl mx-auto font-medium text-balance">
               Pintu kami selalu terbuka untuk pertanyaan, diskusi, maupun
-              ide-ide visioner guna menciptakan transformasi berkelanjutan bagi
-              masyarakat.
+              ide-ide visioner guna menciptakan transformasi nyata di akar
+              rumput.
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* 🌟 2. KONTEN UTAMA */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 -mt-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <section className="max-w-7xl mx-auto px-4 lg:px-8 -mt-20 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* INFORMASI KONTAK (Kiri) */}
           <div className="lg:col-span-4 space-y-6">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-card p-8 md:p-10 rounded-[40px] shadow-xl shadow-primary/5 border border-border sticky top-28"
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="bg-card p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-primary/5 border border-border lg:sticky lg:top-32"
             >
               <h3 className="text-2xl font-bold text-foreground mb-8 flex items-center gap-3">
-                <Globe className="text-primary w-6 h-6" /> Hubungi Kami
+                <Globe className="text-primary w-6 h-6" /> Kontak Resmi
               </h3>
 
               <ul className="space-y-8">
                 <li className="group flex items-start gap-5">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                    <MapPin className="w-6 h-6" />
+                    <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                      Lokasi
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+                      Lokasi Utama
                     </p>
-                    <p className="text-foreground leading-relaxed font-medium">
-                      Jl. Jend. Sudirman No. 45, <br />
-                      Jakarta Selatan, 12190 <br />
-                      Indonesia
-                    </p>
+                    {isLoadingInfo ? (
+                      <div className="h-10 bg-muted animate-pulse rounded-lg w-48"></div>
+                    ) : (
+                      <p className="text-foreground leading-relaxed font-medium text-sm">
+                        {contactInfo.address}
+                      </p>
+                    )}
                   </div>
                 </li>
 
                 <li className="group flex items-start gap-5">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                    <Mail className="w-6 h-6" />
+                    <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                      Email Resmi
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+                      Surel / Email
                     </p>
-                    <p className="text-foreground font-semibold">
-                      halo@titiannusantara.org
-                    </p>
+                    {isLoadingInfo ? (
+                      <div className="h-5 bg-muted animate-pulse rounded-lg w-40"></div>
+                    ) : (
+                      <a
+                        href={`mailto:${contactInfo.email}`}
+                        className="text-foreground font-semibold text-sm hover:text-primary transition-colors"
+                      >
+                        {contactInfo.email}
+                      </a>
+                    )}
                   </div>
                 </li>
 
                 <li className="group flex items-start gap-5">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                    <Phone className="w-6 h-6" />
+                    <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                       Telepon / WA
                     </p>
-                    <p className="text-foreground font-semibold">
-                      +62 21 555 1234
-                    </p>
+                    {isLoadingInfo ? (
+                      <div className="h-5 bg-muted animate-pulse rounded-lg w-32"></div>
+                    ) : (
+                      <a
+                        href={`tel:${contactInfo.phone}`}
+                        className="text-foreground font-semibold text-sm hover:text-primary transition-colors"
+                      >
+                        {contactInfo.phone}
+                      </a>
+                    )}
                   </div>
                 </li>
               </ul>
 
-              <div className="mt-12 pt-8 border-t border-border">
+              <div className="mt-10 pt-8 border-t border-border/60">
                 <p className="text-sm text-muted-foreground italic leading-relaxed">
                   "Menghubungkan niat baik dengan aksi nyata melalui kolaborasi
-                  lintas sektor."
+                  lintas sektor yang setara."
                 </p>
               </div>
             </motion.div>
@@ -181,16 +251,20 @@ export default function HubungiKamiPage() {
 
           {/* FORMULIR (Kanan) */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="lg:col-span-8 bg-card p-6 md:p-12 rounded-[40px] shadow-2xl shadow-primary/5 border border-border"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="lg:col-span-8 bg-card p-6 md:p-12 rounded-[2.5rem] shadow-xl shadow-primary/5 border border-border"
           >
             {/* TABS PENGENDALI */}
-            <div className="inline-flex bg-secondary/50 p-1.5 rounded-2xl w-full max-w-md mx-auto mb-12 border border-border">
+            <div className="inline-flex bg-muted/50 p-1.5 rounded-2xl w-full max-w-md mx-auto mb-10 border border-border/50 flex-col sm:flex-row">
               <button
-                onClick={() => setActiveTab("pesan")}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex justify-center items-center gap-2 ${
+                onClick={() => {
+                  setActiveTab("pesan");
+                  setSuccessMsg("");
+                  setErrorMsg("");
+                }}
+                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex justify-center items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   activeTab === "pesan"
                     ? "bg-background text-primary shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -199,8 +273,12 @@ export default function HubungiKamiPage() {
                 <MessageSquare className="w-4 h-4" /> Pesan Umum
               </button>
               <button
-                onClick={() => setActiveTab("kolaborasi")}
-                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex justify-center items-center gap-2 ${
+                onClick={() => {
+                  setActiveTab("kolaborasi");
+                  setSuccessMsg("");
+                  setErrorMsg("");
+                }}
+                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex justify-center items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   activeTab === "kolaborasi"
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-muted-foreground hover:text-foreground"
@@ -210,15 +288,26 @@ export default function HubungiKamiPage() {
               </button>
             </div>
 
+            {/* AREA NOTIFIKASI */}
             <AnimatePresence mode="wait">
               {successMsg && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="p-6 mb-8 bg-primary/10 text-primary rounded-[24px] border border-primary/20 font-bold text-center flex items-center justify-center gap-3"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-5 mb-8 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded-2xl border border-green-200 dark:border-green-900 font-bold text-center flex items-center justify-center gap-3 text-sm shadow-sm"
                 >
-                  <Handshake className="w-6 h-6" /> {successMsg}
+                  <Handshake className="w-5 h-5" /> {successMsg}
+                </motion.div>
+              )}
+              {errorMsg && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-5 mb-8 bg-destructive/10 text-destructive rounded-2xl border border-destructive/20 font-bold text-center flex items-center justify-center gap-3 text-sm shadow-sm"
+                >
+                  <AlertCircle className="w-5 h-5" /> {errorMsg}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -228,33 +317,37 @@ export default function HubungiKamiPage() {
               {activeTab === "pesan" ? (
                 <motion.form
                   key="form-pesan"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
                   transition={{ duration: 0.3 }}
                   onSubmit={handleMsgSubmit}
                   className="space-y-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="font-bold ml-1">Nama Lengkap</Label>
+                    <div className="space-y-2.5">
+                      <Label className="font-bold ml-1 text-foreground/80">
+                        Nama Lengkap
+                      </Label>
                       <Input
                         required
-                        placeholder="Masukkan nama Anda..."
-                        className="h-14 rounded-2xl bg-secondary/30 border-border focus:bg-background transition-all"
+                        placeholder="Misal: Budi Santoso"
+                        className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                         value={msgData.name}
                         onChange={(e) =>
                           setMsgData({ ...msgData, name: e.target.value })
                         }
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="font-bold ml-1">Alamat Email</Label>
+                    <div className="space-y-2.5">
+                      <Label className="font-bold ml-1 text-foreground/80">
+                        Alamat Email
+                      </Label>
                       <Input
                         type="email"
                         required
                         placeholder="alamat@email.com"
-                        className="h-14 rounded-2xl bg-secondary/30 border-border focus:bg-background transition-all"
+                        className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                         value={msgData.email}
                         onChange={(e) =>
                           setMsgData({ ...msgData, email: e.target.value })
@@ -262,24 +355,28 @@ export default function HubungiKamiPage() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-bold ml-1">Subjek</Label>
+                  <div className="space-y-2.5">
+                    <Label className="font-bold ml-1 text-foreground/80">
+                      Subjek Diskusi
+                    </Label>
                     <Input
                       required
-                      placeholder="Apa yang ingin Anda diskusikan?"
-                      className="h-14 rounded-2xl bg-secondary/30 border-border focus:bg-background transition-all"
+                      placeholder="Apa yang ingin Anda sampaikan?"
+                      className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                       value={msgData.subject}
                       onChange={(e) =>
                         setMsgData({ ...msgData, subject: e.target.value })
                       }
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-bold ml-1">Detail Pesan</Label>
+                  <div className="space-y-2.5">
+                    <Label className="font-bold ml-1 text-foreground/80">
+                      Detail Pesan
+                    </Label>
                     <Textarea
                       required
-                      placeholder="Tuliskan pesan Anda secara lengkap..."
-                      className="min-h-[180px] rounded-[24px] bg-secondary/30 border-border focus:bg-background transition-all resize-none p-4"
+                      placeholder="Tuliskan pesan Anda secara lengkap di sini..."
+                      className="min-h-[180px] rounded-[24px] bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all resize-none p-5 text-base leading-relaxed"
                       value={msgData.message}
                       onChange={(e) =>
                         setMsgData({ ...msgData, message: e.target.value })
@@ -289,13 +386,13 @@ export default function HubungiKamiPage() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-black transition-all shadow-xl shadow-primary/20"
+                    className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-base font-bold transition-all shadow-xl shadow-primary/20 hover:-translate-y-1"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
                       <>
-                        <Send className="w-5 h-5 mr-3" /> Kirim Pesan Sekarang
+                        <Send className="w-5 h-5 mr-3" /> Kirim Pesan Umum
                       </>
                     )}
                   </Button>
@@ -304,22 +401,22 @@ export default function HubungiKamiPage() {
                 /* FORM KOLABORASI */
                 <motion.form
                   key="form-kolaborasi"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.3 }}
                   onSubmit={handleCollabSubmit}
                   className="space-y-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="font-bold ml-1">
+                    <div className="space-y-2.5">
+                      <Label className="font-bold ml-1 text-foreground/80">
                         Institusi / Perusahaan
                       </Label>
                       <Input
                         required
                         placeholder="Nama organisasi Anda..."
-                        className="h-14 rounded-2xl bg-secondary/30 border-border"
+                        className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                         value={collabData.organization_name}
                         onChange={(e) =>
                           setCollabData({
@@ -329,12 +426,14 @@ export default function HubungiKamiPage() {
                         }
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="font-bold ml-1">Narahubung (PIC)</Label>
+                    <div className="space-y-2.5">
+                      <Label className="font-bold ml-1 text-foreground/80">
+                        Narahubung (PIC)
+                      </Label>
                       <Input
                         required
                         placeholder="Nama lengkap PIC..."
-                        className="h-14 rounded-2xl bg-secondary/30 border-border"
+                        className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                         value={collabData.contact_person}
                         onChange={(e) =>
                           setCollabData({
@@ -344,13 +443,15 @@ export default function HubungiKamiPage() {
                         }
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="font-bold ml-1">Email Kontak</Label>
+                    <div className="space-y-2.5">
+                      <Label className="font-bold ml-1 text-foreground/80">
+                        Email Resmi
+                      </Label>
                       <Input
                         type="email"
                         required
                         placeholder="email@institusi.com"
-                        className="h-14 rounded-2xl bg-secondary/30 border-border"
+                        className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                         value={collabData.email}
                         onChange={(e) =>
                           setCollabData({
@@ -360,14 +461,14 @@ export default function HubungiKamiPage() {
                         }
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="font-bold ml-1">
-                        Nomor WA / Telepon
+                    <div className="space-y-2.5">
+                      <Label className="font-bold ml-1 text-foreground/80">
+                        Nomor Telepon / WA
                       </Label>
                       <Input
                         required
-                        placeholder="+62..."
-                        className="h-14 rounded-2xl bg-secondary/30 border-border"
+                        placeholder="+62 8..."
+                        className="h-14 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base"
                         value={collabData.phone}
                         onChange={(e) =>
                           setCollabData({
@@ -379,11 +480,13 @@ export default function HubungiKamiPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="font-bold ml-1">Skema Kolaborasi</Label>
+                  <div className="space-y-2.5">
+                    <Label className="font-bold ml-1 text-foreground/80">
+                      Skema Kolaborasi
+                    </Label>
                     <select
                       required
-                      className="flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-secondary/30 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                      className="flex h-14 w-full items-center justify-between rounded-2xl border border-border/50 bg-muted/30 px-4 py-2 text-base focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium appearance-none"
                       value={collabData.collaboration_type}
                       onChange={(e) =>
                         setCollabData({
@@ -408,14 +511,14 @@ export default function HubungiKamiPage() {
                     </select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="font-bold ml-1">
+                  <div className="space-y-2.5">
+                    <Label className="font-bold ml-1 text-foreground/80">
                       Ringkasan Ide Kerjasama
                     </Label>
                     <Textarea
                       required
                       placeholder="Jelaskan secara singkat visi atau tawaran kolaborasi Anda..."
-                      className="min-h-[140px] rounded-[24px] bg-secondary/30 border-border focus:bg-background transition-all resize-none p-4"
+                      className="min-h-[140px] rounded-[24px] bg-muted/30 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all resize-none p-5 text-base leading-relaxed"
                       value={collabData.message}
                       onChange={(e) =>
                         setCollabData({
@@ -426,13 +529,14 @@ export default function HubungiKamiPage() {
                     />
                   </div>
 
-                  <div className="space-y-2 p-6 bg-primary/5 rounded-[24px] border border-primary/10 border-dashed">
-                    <Label className="flex items-center gap-2 text-primary font-bold mb-2">
-                      <FileUp className="w-5 h-5" /> Tautan Proposal (Opsional)
+                  <div className="space-y-2.5 p-6 bg-primary/5 rounded-[24px] border-2 border-primary/20 border-dashed hover:border-primary/40 transition-colors">
+                    <Label className="flex items-center gap-2 text-primary font-bold mb-3">
+                      <FileUp className="w-5 h-5" /> Tautan Proposal / Pitch
+                      Deck (Opsional)
                     </Label>
                     <Input
-                      placeholder="URL Google Drive / Dropbox dokumen Anda..."
-                      className="h-12 rounded-xl bg-background border-border"
+                      placeholder="Masukkan URL Google Drive, Dropbox, atau Notion..."
+                      className="h-14 rounded-xl bg-background border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
                       value={collabData.proposal_file_url}
                       onChange={(e) =>
                         setCollabData({
@@ -441,12 +545,16 @@ export default function HubungiKamiPage() {
                         })
                       }
                     />
+                    <p className="text-xs text-muted-foreground ml-1 mt-2 font-medium">
+                      *Pastikan tautan dapat diakses secara publik (Anyone with
+                      the link can view).
+                    </p>
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-black transition-all shadow-xl shadow-primary/20"
+                    className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-base font-bold transition-all shadow-xl shadow-primary/20 hover:-translate-y-1"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-6 h-6 animate-spin" />

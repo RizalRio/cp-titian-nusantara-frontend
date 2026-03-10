@@ -13,11 +13,12 @@ import {
   FolderKanban,
   MapPin,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
 
-// 🌟 INTERFACE SESUAI DTO BACKEND
+// 🌟 INTERFACE
 interface ServiceDetail {
   id: string;
   name: string;
@@ -46,9 +47,9 @@ interface Project {
   metrics?: ProjectMetric[];
 }
 
-// 🌟 ANIMASI FRAMER MOTION
+// 🌟 ANIMASI
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 40 },
   visible: {
     opacity: 1,
     y: 0,
@@ -69,16 +70,14 @@ export default function LayananDetailPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🌟 FETCH DATA LAYANAN & CONTOH PROGRAM
   useEffect(() => {
     const fetchServiceAndProjects = async () => {
+      setIsLoading(true);
       try {
-        // 1. Fetch Layanan
         const resService = await api.get(`/api/v1/services/slug/${slug}`);
         const serviceData = resService.data.data;
         setService(serviceData);
 
-        // 2. Fetch Contoh Program berdasarkan service_id
         if (serviceData?.id) {
           const resProjects = await api.get(
             `/api/v1/projects?service_id=${serviceData.id}&limit=4&status=published`,
@@ -98,10 +97,10 @@ export default function LayananDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-        <Sprout className="w-12 h-12 text-primary animate-bounce mb-4" />
-        <p className="text-primary font-medium animate-pulse">
-          Merajut wawasan ekosistem...
+      <div className="min-h-screen bg-[#F9F9F7] dark:bg-background flex flex-col items-center justify-center">
+        <Sprout className="w-12 h-12 text-primary animate-bounce mb-4 opacity-50" />
+        <p className="text-primary font-medium animate-pulse tracking-widest uppercase text-sm">
+          Menyusun Ekosistem...
         </p>
       </div>
     );
@@ -114,83 +113,98 @@ export default function LayananDetailPage() {
   )?.file_url;
 
   return (
-    <div className="min-h-screen bg-secondary/10 text-foreground font-sans selection:bg-primary selection:text-primary-foreground pb-32">
-      {/* 🌟 1. HERO / BANNER */}
-      <section className="relative w-full h-[60vh] min-h-[500px] flex items-center justify-center overflow-hidden bg-primary">
-        {/* Ornamen Background */}
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl pointer-events-none z-0" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/10 rounded-full blur-3xl pointer-events-none z-0" />
-
-        {thumbnail && (
-          <div className="absolute inset-0 z-0">
-            <img
-              src={thumbnail}
-              alt={service.name}
-              className="w-full h-full object-cover opacity-20 mix-blend-overlay"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-transparent" />
+    <div className="min-h-screen bg-[#F9F9F7] dark:bg-background text-foreground font-sans pb-32">
+      {/* 🌟 1. HERO / BANNER SECTION (Full Width Editorial) */}
+      <section className="relative w-full h-[75vh] min-h-[600px] flex items-end justify-center overflow-hidden bg-primary/95">
+        <div className="absolute inset-0 bg-black/40 z-10" />{" "}
+        {/* Overlay Gelap Halus */}
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={service.name}
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+        ) : (
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary to-secondary/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+            <Leaf className="w-40 h-40 text-white/10" />
           </div>
         )}
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center flex flex-col items-center">
+        <div className="absolute top-32 left-0 right-0 z-20 container mx-auto px-6">
           <Link
             href="/layanan"
-            className="inline-flex items-center rounded-full border border-white/30 bg-white/20 px-4 py-1.5 text-sm font-medium text-white mb-6 backdrop-blur-sm hover:bg-white/40 transition-colors"
+            className="inline-flex items-center rounded-full border border-white/20 bg-black/20 px-5 py-2 text-sm font-medium text-white backdrop-blur-md hover:bg-black/40 transition-colors group"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Kembali ke Ekosistem Layanan
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Kembali ke Katalog Layanan
           </Link>
-          <motion.h1
+        </div>
+        <div className="relative z-20 container mx-auto px-6 lg:px-8 pb-20 w-full">
+          <motion.div
             initial="hidden"
             animate="visible"
-            variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground tracking-tight leading-tight mb-6"
+            variants={staggerContainer}
+            className="max-w-5xl"
           >
-            {service.name}
-          </motion.h1>
-          <motion.p
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            className="text-lg md:text-xl text-primary-foreground/90 max-w-3xl mx-auto leading-relaxed"
-          >
-            {service.short_description}
-          </motion.p>
+            <motion.div
+              variants={fadeInUp}
+              className="mb-6 inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-bold tracking-widest uppercase text-white bg-white/20 backdrop-blur-md border border-white/30"
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-300" /> Ekosistem
+              Pilar
+            </motion.div>
+            <motion.h1
+              variants={fadeInUp}
+              className="text-5xl md:text-6xl lg:text-[5rem] font-extrabold text-white tracking-tight leading-[1.1] mb-6 text-balance"
+            >
+              {service.name}
+            </motion.h1>
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl md:text-2xl text-white/90 max-w-3xl leading-relaxed font-medium"
+            >
+              {service.short_description}
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
-      {/* 🌟 2. NARASI KONTEKS (2 KOLOM: Teks & Gambar) */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      {/* 🌟 2. NARASI KONTEKS (Deskripsi Panjang HTML) */}
+      <section className="max-w-7xl mx-auto px-4 lg:px-8 py-24 md:py-32">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: "-100px" }}
             variants={fadeInUp}
-            className="order-2 lg:order-1"
+            className="lg:col-span-8 lg:pr-10"
           >
-            <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-3">
-              <Leaf className="w-8 h-8 text-primary" /> Narasi Konteks
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-10 flex items-center gap-4">
+              <div className="w-10 h-1 bg-primary rounded-full" />
+              Narasi Konteks
             </h2>
+
+            {/* RENDERER QUILL HTML */}
             <div
-              className="quill-content text-lg text-muted-foreground leading-[1.8]"
+              className="quill-content text-lg md:text-[1.2rem] text-muted-foreground leading-[1.9] font-medium"
               dangerouslySetInnerHTML={{ __html: service.description }}
             />
           </motion.div>
 
+          {/* Kolom Kanan: Card Mini CTA & Abstrak */}
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={fadeInUp}
-            className="order-1 lg:order-2"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            className="lg:col-span-4 lg:sticky lg:top-32 space-y-8"
           >
-            <div className="w-full aspect-square md:aspect-[4/3] rounded-[40px] overflow-hidden shadow-2xl shadow-primary/10 border-4 border-background relative bg-muted">
+            <div className="w-full aspect-square rounded-[3rem] overflow-hidden shadow-2xl shadow-primary/10 border border-border/50 relative bg-muted hidden lg:block">
               {thumbnail ? (
                 <img
                   src={thumbnail}
-                  alt="Ilustrasi Narasi"
-                  className="w-full h-full object-cover"
+                  alt="Ilustrasi"
+                  className="w-full h-full object-cover opacity-80"
                 />
               ) : (
                 <div className="w-full h-full bg-secondary/30 flex items-center justify-center">
@@ -198,60 +212,142 @@ export default function LayananDetailPage() {
                 </div>
               )}
             </div>
+            <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-8 text-center">
+              <HeartHandshake className="w-10 h-10 text-primary mx-auto mb-4" />
+              <h3 className="font-bold text-xl mb-2 text-foreground">
+                Tertarik berkolaborasi?
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Hubungi kami untuk merancang program ini di daerah Anda.
+              </p>
+              <Link
+                href={service.cta_link || "/hubungi-kami"}
+                className="block w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors"
+              >
+                {service.cta_text || "Mulai Diskusi"}
+              </Link>
+            </div>
           </motion.div>
         </div>
 
-        {/* Styling Khusus Konten Quill disesuaikan Tema */}
+        {/* Styling CSS Khusus Quill */}
         <style jsx global>{`
           .quill-content p {
-            margin-bottom: 1.5em;
+            margin-bottom: 1.8em;
+            color: hsl(var(--foreground) / 0.8);
           }
           .quill-content h2,
           .quill-content h3 {
             color: hsl(var(--foreground));
-            font-weight: 700;
-            margin-top: 1.5em;
-            margin-bottom: 0.75em;
+            font-weight: 800;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            letter-spacing: -0.02em;
+          }
+          .quill-content h2 {
+            font-size: 2rem;
+          }
+          .quill-content h3 {
+            font-size: 1.5rem;
           }
           .quill-content ul {
             list-style-type: disc;
             padding-left: 1.5rem;
-            margin-bottom: 1.5em;
+            margin-bottom: 2em;
+            color: hsl(var(--foreground) / 0.8);
+          }
+          .quill-content li {
+            margin-bottom: 0.5em;
+          }
+          .quill-content a {
+            color: hsl(var(--primary));
+            text-decoration: underline;
+            font-weight: 600;
           }
         `}</style>
       </section>
 
-      {/* 🌟 4. CONTOH PROGRAM */}
-      <section className="py-24 max-w-7xl mx-auto px-4 lg:px-8">
+      {/* 🌟 3. DAMPAK YANG DIHASILKAN (Bento Grid Style) */}
+      {service.impact_points && service.impact_points.length > 0 && (
+        <section className="bg-card py-32 border-y border-border relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={fadeInUp}
+              className="text-center mb-20"
+            >
+              <Target className="w-12 h-12 text-primary mx-auto mb-6" />
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 tracking-tight">
+                Dampak Terukur
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Perubahan nyata yang telah dan akan terus menjadi target wujud
+                dari ekosistem layanan ini.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {service.impact_points.map((impact, index) => (
+                <motion.div
+                  key={index}
+                  variants={fadeInUp}
+                  className="bg-background p-8 rounded-[2.5rem] border border-border/60 hover:shadow-xl hover:border-primary/30 transition-all duration-500 flex items-start gap-5 group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-primary transition-all duration-300">
+                    <CheckCircle2 className="w-6 h-6 text-primary group-hover:text-primary-foreground" />
+                  </div>
+                  <p className="text-foreground leading-relaxed font-medium text-lg pt-2">
+                    {impact}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* 🌟 4. CONTOH PROGRAM TERKAIT */}
+      <section className="py-32 max-w-7xl mx-auto px-4 lg:px-8">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           variants={fadeInUp}
-          className="mb-16 max-w-3xl"
+          className="mb-16 flex flex-col md:flex-row justify-between items-end gap-6"
         >
-          <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
-            <FolderKanban className="w-8 h-8 text-primary" /> Contoh Program
-            Terkait
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Implementasi langsung dari layanan {service.name} yang menyentuh
-            masyarakat di berbagai wilayah.
-          </p>
+          <div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
+              Aksi Nyata di Lapangan
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl">
+              Lihat bagaimana pilar {service.name} diimplementasikan langsung ke
+              dalam masyarakat.
+            </p>
+          </div>
         </motion.div>
 
         {projects.length === 0 ? (
-          <div className="text-center py-16 bg-card rounded-[32px] border border-border shadow-sm">
-            <FolderKanban className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium">
-              Contoh program sedang dalam tahap penyusunan dokumentasi.
+          <div className="text-center py-24 bg-card rounded-[3rem] border border-border border-dashed shadow-sm">
+            <FolderKanban className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+            <p className="text-muted-foreground text-lg">
+              Dokumentasi program sedang dalam tahap kurasi.
             </p>
           </div>
         ) : (
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true }}
             variants={staggerContainer}
             className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
@@ -263,36 +359,45 @@ export default function LayananDetailPage() {
                 <motion.div
                   key={project.id}
                   variants={fadeInUp}
-                  className="bg-card rounded-[32px] border border-border shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 transition-all duration-500 group overflow-hidden flex flex-col"
+                  className="bg-card rounded-[3rem] border border-border shadow-sm hover:shadow-2xl hover:border-primary/30 transition-all duration-500 group overflow-hidden flex flex-col p-4"
                 >
-                  {projectThumb && (
-                    <div className="w-full h-56 bg-muted overflow-hidden relative">
-                      <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-multiply" />
+                  {/* Thumbnail Kartu Program */}
+                  <div className="w-full aspect-[16/9] md:aspect-[4/3] bg-muted rounded-[2.5rem] overflow-hidden relative">
+                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-overlay" />
+                    {projectThumb ? (
                       <img
                         src={projectThumb}
                         alt={project.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
-                    </div>
-                  )}
-                  <div className="p-8 flex flex-col flex-grow">
-                    {project.location && (
-                      <span className="text-sm font-semibold text-primary flex items-center gap-1.5 mb-3 bg-primary/5 w-fit px-3 py-1 rounded-full border border-primary/10">
-                        <MapPin className="w-4 h-4" /> {project.location}
-                      </span>
+                    ) : (
+                      <div className="w-full h-full bg-secondary/20 flex items-center justify-center">
+                        <FolderKanban className="w-16 h-16 text-primary/20" />
+                      </div>
                     )}
-                    <h3 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
+                    {project.location && (
+                      <div className="absolute top-4 left-4 z-20 bg-background/90 backdrop-blur-sm px-4 py-1.5 rounded-full border border-border/50 flex items-center gap-1.5 text-xs font-bold tracking-wide text-foreground shadow-sm">
+                        <MapPin className="w-3.5 h-3.5 text-primary" />{" "}
+                        {project.location}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Konten Kartu Program */}
+                  <div className="p-6 md:p-8 flex flex-col flex-grow">
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4 group-hover:text-primary transition-colors leading-[1.2]">
                       {project.title}
                     </h3>
-                    <p className="text-muted-foreground leading-relaxed mb-8 flex-grow line-clamp-3">
+                    <p className="text-muted-foreground leading-relaxed mb-8 flex-grow line-clamp-3 text-[1.05rem]">
                       {project.summary}
                     </p>
 
                     <Link
                       href={`/program/${project.slug}`}
-                      className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-secondary/50 border border-border text-foreground font-bold rounded-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300"
+                      className="inline-flex items-center justify-between w-full pt-6 border-t border-border/50 text-foreground font-bold group-hover:text-primary transition-colors"
                     >
-                      Pelajari Program
+                      <span>Pelajari Program Secara Utuh</span>
+                      <ArrowRight className="w-5 h-5 transform group-hover:translate-x-2 transition-transform" />
                     </Link>
                   </div>
                 </motion.div>
@@ -302,82 +407,36 @@ export default function LayananDetailPage() {
         )}
       </section>
 
-      {/* 🌟 3. DAMPAK YANG DIHASILKAN */}
-      {service.impact_points && service.impact_points.length > 0 && (
-        <section className="bg-background py-24 border-y border-border">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={fadeInUp}
-              className="mb-16 max-w-3xl"
-            >
-              <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
-                <Target className="w-8 h-8 text-primary" /> Dampak yang
-                Dihasilkan
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Perubahan nyata dan terukur yang menjadi target serta telah
-                terwujud melalui ekosistem ini.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={staggerContainer}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {service.impact_points.map((impact, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  className="bg-card p-8 rounded-[32px] border border-border hover:shadow-md hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4"
-                >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-7 h-7 text-primary" />
-                  </div>
-                  <p className="text-foreground leading-relaxed font-medium text-lg">
-                    {impact}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* 🌟 5. CTA KOLABORASI */}
-      <section className="max-w-5xl mx-auto px-4 lg:px-8 pt-10">
+      {/* 🌟 5. CTA BOTTOM */}
+      <section className="max-w-6xl mx-auto px-4 lg:px-8 pt-10">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           variants={fadeInUp}
-          className="bg-primary rounded-[40px] p-10 md:p-16 text-center text-primary-foreground relative overflow-hidden shadow-2xl shadow-primary/20"
+          className="bg-primary rounded-[4rem] p-10 md:p-20 text-center text-primary-foreground relative overflow-hidden shadow-2xl shadow-primary/20"
         >
-          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-[-10%] right-[-5%] w-48 h-48 bg-black/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent opacity-60" />
+          <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-white/10 rounded-full blur-[80px] pointer-events-none" />
 
-          <div className="relative z-10">
-            <HeartHandshake className="w-16 h-16 mx-auto mb-6 text-primary-foreground/90" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="relative z-10 flex flex-col items-center">
+            <HeartHandshake className="w-16 h-16 mx-auto mb-8 text-primary-foreground/90" />
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-balance">
               Mulai Perubahan Bersama Kami
             </h2>
-            <p className="text-primary-foreground/80 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-primary-foreground/80 text-xl mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
               Percaya pada visi yang sama? Bergabunglah sebagai mitra strategis
-              untuk memperluas jangkauan layanan {service.name} ke seluruh
-              penjuru negeri.
+              untuk memperluas jangkauan layanan{" "}
+              <strong className="text-white">"{service.name}"</strong> ke
+              seluruh penjuru negeri.
             </p>
 
             <Link
               href={service.cta_link || "/hubungi-kami"}
-              className="inline-flex items-center px-10 py-4 bg-background text-primary text-lg font-bold rounded-full hover:bg-secondary hover:scale-105 transition-all duration-300 shadow-xl"
+              className="inline-flex items-center px-10 py-5 bg-background text-primary text-lg font-extrabold rounded-full hover:scale-105 transition-transform duration-300 shadow-xl tracking-wide"
             >
-              {service.cta_text || "Mulai Kolaborasi"}{" "}
-              <ArrowRight className="w-5 h-5 ml-2" />
+              {service.cta_text || "Diskusikan Kolaborasi"}
+              <ArrowRight className="w-6 h-6 ml-3" />
             </Link>
           </div>
         </motion.div>

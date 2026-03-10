@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   ChevronLeft,
@@ -11,6 +11,7 @@ import {
   BookOpen,
   ArrowRight,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -34,15 +35,15 @@ interface Post {
 // Konfigurasi Animasi Framer Motion
 const staggerContainer = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
+    transition: { duration: 0.5, ease: "easeOut" },
   },
 };
 
@@ -50,7 +51,6 @@ function WawasanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Membaca parameter URL yang ada, dengan nilai default
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlCategory = searchParams.get("category_id") || "all";
   const urlSearch = searchParams.get("search") || "";
@@ -66,15 +66,12 @@ function WawasanContent() {
     total_pages: 1,
   });
 
-  // Local state untuk form input pencarian
   const [searchInput, setSearchInput] = useState(urlSearch);
 
-  // Sinkronisasi input form saat URL berubah
   useEffect(() => {
     setSearchInput(urlSearch);
   }, [urlSearch]);
 
-  // Ambil Master Data Kategori
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -87,7 +84,6 @@ function WawasanContent() {
     fetchCategories();
   }, []);
 
-  // Ambil Data Artikel berdasarkan URL Params
   useEffect(() => {
     const fetchPosts = async () => {
       setIsLoading(true);
@@ -122,7 +118,6 @@ function WawasanContent() {
     fetchPosts();
   }, [urlPage, urlCategory, urlSearch]);
 
-  // Handler untuk memperbarui URL Params
   const updateQueryParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value && value !== "all" && value !== "") {
@@ -135,7 +130,6 @@ function WawasanContent() {
       params.set("page", "1");
     }
 
-    // Mencegah layar scroll ke atas otomatis saat filter ditekan
     router.push(`/wawasan?${params.toString()}`, { scroll: false });
   };
 
@@ -147,42 +141,42 @@ function WawasanContent() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
       day: "numeric",
-      month: "long",
+      month: "short",
       year: "numeric",
     });
   };
 
   return (
-    <div className="min-h-screen bg-secondary/10 text-foreground font-sans pb-8">
+    <div className="min-h-screen bg-[#F9F9F7] dark:bg-background text-foreground font-sans pb-32">
       {/* 🌟 HERO SECTION */}
-      <section className="relative pt-32 pb-20 px-6 lg:px-12 overflow-hidden flex flex-col items-center text-center">
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-70 pointer-events-none dark:mix-blend-normal" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-secondary/60 rounded-full mix-blend-multiply filter blur-3xl opacity-80 pointer-events-none dark:mix-blend-normal" />
+      <section className="relative pt-40 pb-28 px-6 lg:px-12 overflow-hidden flex flex-col items-center text-center bg-card border-b border-border/40">
+        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none"></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full mix-blend-multiply filter blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-secondary/30 rounded-full mix-blend-multiply filter blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl mx-auto mt-4">
+        <div className="relative z-10 max-w-4xl mx-auto">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-primary bg-primary/5 border border-primary/10 backdrop-blur-md mb-8 shadow-sm"
+            className="inline-flex items-center rounded-full px-5 py-2 text-xs font-bold tracking-widest uppercase text-primary bg-primary/5 border border-primary/10 mb-8"
           >
-            <Leaf className="w-4 h-4 mr-2" />
+            <Sparkles className="w-3.5 h-3.5 mr-2" />
             Ruang Berbagi Gagasan
           </motion.div>
           <motion.h1
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground mb-6 leading-tight"
+            className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground mb-6 leading-[1.1] text-balance"
           >
-            Menelusuri Gagasan, <br className="hidden md:block" /> Merawat
-            Ingatan
+            Menelusuri Gagasan, Merawat Ingatan.
           </motion.h1>
           <motion.p
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+            className="text-lg md:text-2xl text-muted-foreground leading-relaxed max-w-2xl mx-auto font-medium"
           >
             Kumpulan pemikiran, cerita dari akar rumput, dan laporan perjalanan
             dalam upaya merajut langkah nyata untuk Nusantara.
@@ -190,17 +184,17 @@ function WawasanContent() {
         </div>
       </section>
 
-      {/* 🌟 FILTER & SEARCH PANEL */}
-      <section className="px-6 lg:px-12 max-w-7xl mx-auto mb-16 relative z-10">
-        <div className="bg-card/60 backdrop-blur-xl border border-border p-3 md:p-4 rounded-full shadow-lg shadow-primary/5 flex flex-col md:flex-row gap-4 items-center justify-between">
+      {/* 🌟 FILTER & SEARCH PANEL (Sticky) */}
+      <section className="sticky top-20 z-40 px-4 lg:px-8 py-6 max-w-7xl mx-auto -mt-10">
+        <div className="bg-background/90 backdrop-blur-xl border border-border p-2 md:p-3 rounded-[2rem] shadow-lg shadow-primary/5 flex flex-col md:flex-row gap-3 items-center justify-between">
           {/* Daftar Kategori Horizontal */}
           <div className="flex w-full md:w-auto overflow-x-auto hide-scrollbar gap-2 px-2 pb-2 md:pb-0">
             <button
               onClick={() => updateQueryParams("category_id", "all")}
-              className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+              className={`whitespace-nowrap px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ${
                 urlCategory === "all"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               Semua Tulisan
@@ -209,10 +203,10 @@ function WawasanContent() {
               <button
                 key={cat.id}
                 onClick={() => updateQueryParams("category_id", cat.id)}
-                className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                className={`whitespace-nowrap px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ${
                   urlCategory === cat.id
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 {cat.name}
@@ -223,18 +217,18 @@ function WawasanContent() {
           {/* Kolom Pencarian */}
           <form
             onSubmit={handleSearchSubmit}
-            className="w-full md:w-72 relative"
+            className="w-full md:w-[320px] relative shrink-0 px-2 md:px-0"
           >
             <input
               type="text"
               placeholder="Cari judul tulisan..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-5 pr-12 py-3 bg-background/80 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
+              className="w-full pl-6 pr-12 py-3.5 bg-muted/30 border border-border rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-background transition-all placeholder:text-muted-foreground"
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-primary/5 hover:bg-primary/10 text-primary rounded-full transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-colors shadow-sm"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -243,87 +237,108 @@ function WawasanContent() {
       </section>
 
       {/* 🌟 POST GRID */}
-      <section className="px-6 lg:px-12 max-w-7xl mx-auto pb-16">
-        {isLoading ? (
-          /* SKELETON LOADING (Halus & Konsisten) */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="bg-white/40 rounded-[32px] p-6 animate-pulse border border-white/50"
-              >
-                <div className="w-full h-48 bg-[#E3E8E1]/50 rounded-[24px] mb-6" />
-                <div className="h-4 w-24 bg-[#E3E8E1] rounded-full mb-4" />
-                <div className="h-7 w-full bg-[#E3E8E1] rounded-lg mb-2" />
-                <div className="h-7 w-2/3 bg-[#E3E8E1] rounded-lg mb-4" />
-                <div className="h-4 w-full bg-[#E3E8E1]/60 rounded-full mb-2" />
-                <div className="h-4 w-4/5 bg-[#E3E8E1]/60 rounded-full" />
-              </div>
-            ))}
-          </div>
-        ) : posts.length === 0 ? (
-          /* EMPTY STATE */
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-24 h-24 bg-[#E3E8E1] rounded-full flex items-center justify-center mb-6">
-              <BookOpen className="w-10 h-10 text-[#2D4A22]/40" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-2">
-              Belum Ada Tulisan
-            </h3>
-            <p className="text-slate-500">
-              Kami sedang merajut gagasan. Silakan sesuaikan filter pencarian
-              Anda.
-            </p>
-          </div>
-        ) : (
-          /* DATA GRID */
-          <>
+      <section className="px-4 lg:px-8 max-w-7xl mx-auto mt-10">
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            /* SKELETON LOADING (Sesuai dengan bentuk kartu asli) */
             <motion.div
-              key={`${urlCategory}-${urlSearch}-${urlPage}`} // 👈 Key dinamis agar animasi reset
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="bg-card rounded-[2.5rem] p-4 flex flex-col border border-border shadow-sm"
+                >
+                  <div className="w-full aspect-[4/3] bg-muted animate-pulse rounded-[2rem] mb-6" />
+                  <div className="px-4 pb-4">
+                    <div className="flex gap-2 mb-4">
+                      <div className="h-6 w-20 bg-muted animate-pulse rounded-full" />
+                      <div className="h-6 w-24 bg-muted animate-pulse rounded-full" />
+                    </div>
+                    <div className="h-8 w-full bg-muted animate-pulse rounded-lg mb-3" />
+                    <div className="h-8 w-3/4 bg-muted animate-pulse rounded-lg mb-6" />
+                    <div className="h-4 w-full bg-muted animate-pulse rounded-full mb-2" />
+                    <div className="h-4 w-4/5 bg-muted animate-pulse rounded-full mb-8" />
+                    <div className="h-5 w-32 bg-muted animate-pulse rounded-md mt-auto" />
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          ) : posts.length === 0 ? (
+            /* EMPTY STATE */
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center py-32 text-center bg-card rounded-[3rem] border border-border border-dashed mx-4"
+            >
+              <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6">
+                <BookOpen className="w-10 h-10 text-primary/40" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-3">
+                Belum Ada Tulisan
+              </h3>
+              <p className="text-muted-foreground max-w-sm">
+                Kami tidak dapat menemukan artikel yang sesuai dengan filter
+                pencarian Anda.
+              </p>
+            </motion.div>
+          ) : (
+            /* DATA GRID */
+            <motion.div
+              key={`${urlCategory}-${urlSearch}-${urlPage}`}
               initial="hidden"
               animate="visible"
               variants={staggerContainer}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {posts.map((post) => (
-                <motion.div key={post.id} variants={fadeInUp}>
+                <motion.div
+                  key={post.id}
+                  variants={fadeInUp}
+                  className="h-full"
+                >
                   <Link
                     href={`/wawasan/${post.slug}`}
-                    className="group bg-card rounded-[32px] overflow-hidden border border-border shadow-sm hover:shadow-2xl hover:shadow-primary/15 transition-all duration-500 flex flex-col h-full relative transform hover:-translate-y-2"
+                    className="group bg-card rounded-[2.5rem] p-4 border border-border shadow-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 flex flex-col h-full relative"
                   >
-                    {/* Placeholder Gambar (Abstrak Earth Tone) */}
+                    {/* Gambar Artikel */}
                     {post.media &&
                     post.media.find((m) => m.media_type === "thumbnail") ? (
-                      <div className="w-full h-56 bg-slate-100 rounded-[24px] mb-6 relative overflow-hidden group-hover:shadow-md transition-all duration-500">
+                      <div className="w-full aspect-[4/3] rounded-[2rem] mb-6 relative overflow-hidden bg-muted">
+                        <div className="absolute inset-0 bg-primary/10 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity z-10" />
                         <img
                           src={
                             post.media.find((m) => m.media_type === "thumbnail")
                               ?.file_url
                           }
                           alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                         />
                       </div>
                     ) : (
-                      /* Placeholder Gambar (Abstrak Earth Tone) */
-                      <div className="w-full h-56 bg-[#F3F5F1] rounded-[24px] mb-6 relative overflow-hidden flex items-center justify-center group-hover:bg-[#EAECE7] transition-colors duration-500">
-                        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#2D4A22]/5 rounded-full blur-3xl group-hover:bg-[#2D4A22]/10 transition-colors" />
-                        <div className="absolute -left-10 -top-10 w-32 h-32 bg-slate-400/5 rounded-full blur-2xl" />
-                        <Leaf className="w-12 h-12 text-[#2D4A22]/10 group-hover:scale-110 transition-transform duration-700" />
+                      /* Fallback Gambar Abstrak */
+                      <div className="w-full aspect-[4/3] bg-secondary/20 rounded-[2rem] mb-6 relative overflow-hidden flex items-center justify-center">
+                        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors" />
+                        <Leaf className="w-12 h-12 text-primary/20 group-hover:scale-110 transition-transform duration-700" />
                       </div>
                     )}
 
-                    <div className="p-8 flex flex-col flex-grow">
+                    <div className="px-4 pb-4 flex flex-col flex-grow">
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
-                          {post.category?.name || "Tanpa Kategori"}
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full">
+                          {post.category?.name || "Uncategorized"}
                         </span>
-                        <span className="text-xs font-medium text-muted-foreground">
+                        <span className="text-[13px] font-semibold text-muted-foreground">
                           {formatDate(post.created_at)}
                         </span>
                       </div>
 
-                      <h2 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                      <h2 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors line-clamp-2 leading-[1.3] text-balance">
                         {post.title}
                       </h2>
 
@@ -331,64 +346,72 @@ function WawasanContent() {
                         {post.excerpt}
                       </p>
 
-                      <div className="inline-flex items-center text-primary font-bold text-sm mt-auto">
+                      <div className="inline-flex items-center text-primary font-bold text-sm mt-auto group-hover:tracking-wider transition-all duration-300">
                         Baca Selengkapnya
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
+                        <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                       </div>
                     </div>
                   </Link>
                 </motion.div>
               ))}
             </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* 🌟 PAGINASI */}
-            {meta.total_pages > 1 && (
-              <div className="mt-20 flex justify-center items-center gap-4">
-                <button
-                  onClick={() => {
-                    updateQueryParams("page", (meta.page - 1).toString());
-                    window.scrollTo({ top: 300, behavior: "smooth" }); // Opsional: Scroll halus ke atas grid
-                  }}
-                  disabled={meta.page === 1}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
+        {/* 🌟 PAGINASI */}
+        {!isLoading && meta.total_pages > 1 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-20 flex justify-center items-center gap-4"
+          >
+            <button
+              onClick={() => {
+                updateQueryParams("page", (meta.page - 1).toString());
+                window.scrollTo({ top: 400, behavior: "smooth" });
+              }}
+              disabled={meta.page === 1}
+              className="w-14 h-14 flex items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
 
-                <div className="bg-card px-6 py-3 rounded-full border border-border text-muted-foreground font-medium shadow-sm">
-                  Halaman{" "}
-                  <span className="text-foreground font-bold">{meta.page}</span>{" "}
-                  dari {meta.total_pages}
-                </div>
+            <div className="bg-card px-8 py-4 rounded-full border border-border text-muted-foreground font-medium shadow-sm text-sm">
+              Hal{" "}
+              <span className="text-foreground font-bold mx-1">
+                {meta.page}
+              </span>{" "}
+              dari {meta.total_pages}
+            </div>
 
-                <button
-                  onClick={() => {
-                    updateQueryParams("page", (meta.page + 1).toString());
-                    window.scrollTo({ top: 300, behavior: "smooth" });
-                  }}
-                  disabled={meta.page === meta.total_pages}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </>
+            <button
+              onClick={() => {
+                updateQueryParams("page", (meta.page + 1).toString());
+                window.scrollTo({ top: 400, behavior: "smooth" });
+              }}
+              disabled={meta.page === meta.total_pages}
+              className="w-14 h-14 flex items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </motion.div>
         )}
       </section>
     </div>
   );
 }
 
-// 🌟 KOMPONEN UTAMA (Wajib Suspense untuk useSearchParams)
+// 🌟 KOMPONEN UTAMA (Wajib Suspense)
 export default function WawasanPage() {
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="animate-pulse flex flex-col items-center">
-            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-            <p className="text-primary font-medium">Memuat ruang berbagi...</p>
+            <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+            <p className="text-muted-foreground font-medium tracking-wide">
+              Membuka lembaran...
+            </p>
           </div>
         </div>
       }

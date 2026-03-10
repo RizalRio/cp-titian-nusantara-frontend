@@ -13,6 +13,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
+  Sprout,
+  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -52,7 +55,7 @@ interface Project {
 
 // 🌟 ANIMASI
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 40 },
   visible: {
     opacity: 1,
     y: 0,
@@ -126,7 +129,6 @@ export default function ProgramDetailPage() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    // Kunci scroll body saat lightbox terbuka
     if (selectedImageIndex !== null) {
       document.body.style.overflow = "hidden";
     } else {
@@ -141,10 +143,10 @@ export default function ProgramDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="text-primary font-medium animate-pulse">
-          Menyiapkan cerita program...
+      <div className="min-h-screen bg-[#F9F9F7] dark:bg-background flex flex-col items-center justify-center">
+        <Sprout className="w-12 h-12 text-primary animate-bounce mb-4 opacity-50" />
+        <p className="text-primary font-medium animate-pulse tracking-widest uppercase text-sm">
+          Menyiapkan Cerita Program...
         </p>
       </div>
     );
@@ -153,66 +155,88 @@ export default function ProgramDetailPage() {
   if (!project) return null;
 
   return (
-    <div className="min-h-screen bg-secondary/10 text-foreground font-sans pb-32">
-      {/* 🌟 1. HERO SECTION */}
-      <section className="relative w-full pt-32 pb-28 px-4 lg:px-8 bg-primary overflow-hidden">
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-black/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto relative z-10 text-center flex flex-col items-center">
+    <div className="min-h-screen bg-[#F9F9F7] dark:bg-background text-foreground font-sans pb-32">
+      {/* 🌟 1. HERO / BANNER (Editorial Full Width) */}
+      <section className="relative w-full h-[75vh] min-h-[600px] flex items-end justify-center overflow-hidden bg-primary/90">
+        <div className="absolute inset-0 bg-black/50 z-10" />{" "}
+        {/* Overlay Gelap Halus */}
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={project.title}
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+        ) : (
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary to-secondary/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+            <LayoutTemplate className="w-40 h-40 text-white/10" />
+          </div>
+        )}
+        <div className="absolute top-32 left-0 right-0 z-20 container mx-auto px-6">
           <Link
             href={
               project.service ? `/layanan/${project.service.slug}` : "/layanan"
             }
-            className="inline-flex items-center text-primary-foreground/80 hover:text-primary-foreground font-medium transition-colors mb-10 group bg-primary-foreground/10 px-5 py-2 rounded-full backdrop-blur-sm border border-primary-foreground/20"
+            className="inline-flex items-center rounded-full border border-white/20 bg-black/20 px-5 py-2 text-sm font-medium text-white backdrop-blur-md hover:bg-black/40 transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Kembali ke {project.service?.name || "Layanan"}
           </Link>
-
-          <motion.h1
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground tracking-tight leading-tight mb-8"
-          >
-            {project.title}
-          </motion.h1>
-
+        </div>
+        <div className="relative z-20 container mx-auto px-6 lg:px-8 pb-24 md:pb-32 w-full text-center flex flex-col items-center">
           <motion.div
             initial="hidden"
             animate="visible"
-            variants={fadeInUp}
-            className="flex flex-wrap justify-center gap-4 text-primary-foreground/90 mb-8"
+            variants={staggerContainer}
+            className="max-w-4xl"
           >
-            {project.location && (
-              <div className="flex items-center bg-black/20 px-5 py-2.5 rounded-full backdrop-blur-md text-sm font-medium border border-white/10">
-                <MapPin className="w-4 h-4 mr-2" /> {project.location}
-              </div>
-            )}
-            {(project.start_date || project.end_date) && (
-              <div className="flex items-center bg-black/20 px-5 py-2.5 rounded-full backdrop-blur-md text-sm font-medium border border-white/10">
-                <Calendar className="w-4 h-4 mr-2" />
-                {formatDate(project.start_date)}{" "}
-                {project.end_date && `- ${formatDate(project.end_date)}`}
-              </div>
-            )}
-          </motion.div>
+            <motion.div
+              variants={fadeInUp}
+              className="mb-6 inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-bold tracking-widest uppercase text-white bg-white/20 backdrop-blur-md border border-white/30"
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-300" /> Aksi
+              Nyata
+            </motion.div>
 
-          <motion.p
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            className="text-lg md:text-xl text-primary-foreground/80 max-w-3xl mx-auto leading-relaxed"
-          >
-            {project.summary}
-          </motion.p>
+            <motion.h1
+              variants={fadeInUp}
+              className="text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-white tracking-tight leading-[1.1] mb-8 text-balance"
+            >
+              {project.title}
+            </motion.h1>
+
+            <motion.div
+              variants={fadeInUp}
+              className="flex flex-wrap justify-center gap-4 text-white/90 mb-8"
+            >
+              {project.location && (
+                <div className="flex items-center bg-black/30 px-5 py-2.5 rounded-full backdrop-blur-md text-sm font-medium border border-white/10 shadow-sm">
+                  <MapPin className="w-4 h-4 mr-2 text-primary-foreground" />{" "}
+                  {project.location}
+                </div>
+              )}
+              {(project.start_date || project.end_date) && (
+                <div className="flex items-center bg-black/30 px-5 py-2.5 rounded-full backdrop-blur-md text-sm font-medium border border-white/10 shadow-sm">
+                  <Calendar className="w-4 h-4 mr-2 text-primary-foreground" />
+                  {formatDate(project.start_date)}{" "}
+                  {project.end_date && `- ${formatDate(project.end_date)}`}
+                </div>
+              )}
+            </motion.div>
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed font-medium text-balance"
+            >
+              {project.summary}
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
-      {/* 🌟 2. METRIK (Angka Dampak) */}
+      {/* 🌟 2. METRIK DAMPAK (Melayang di atas batas Hero) */}
       {project.metrics && project.metrics.length > 0 && (
-        <section className="max-w-5xl mx-auto px-4 lg:px-8 relative z-20 -mt-14 mb-16">
+        <section className="max-w-6xl mx-auto px-4 lg:px-8 relative z-30 -mt-20 md:-mt-24 mb-16">
           <motion.div
             initial="hidden"
             animate="visible"
@@ -225,17 +249,17 @@ export default function ProgramDetailPage() {
                 <motion.div
                   key={index}
                   variants={fadeInUp}
-                  className="bg-card p-6 md:p-8 rounded-[24px] shadow-xl shadow-primary/5 border border-border text-center flex flex-col justify-center transform hover:-translate-y-2 transition-all duration-300"
+                  className="bg-card/90 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-2xl shadow-primary/5 border border-border/60 text-center flex flex-col justify-center transform hover:-translate-y-2 transition-all duration-300"
                 >
-                  <div className="text-4xl md:text-5xl font-black text-primary mb-2 flex items-baseline justify-center gap-1">
+                  <div className="text-4xl md:text-[3.5rem] font-black text-primary mb-3 flex items-baseline justify-center gap-1 tracking-tight">
                     {metric.metric_value}
                     {metric.metric_unit && (
-                      <span className="text-lg font-bold text-muted-foreground">
+                      <span className="text-lg md:text-xl font-bold text-muted-foreground/80">
                         {metric.metric_unit}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm md:text-base font-semibold text-muted-foreground line-clamp-2">
+                  <p className="text-sm md:text-base font-bold text-foreground/80 line-clamp-2 leading-snug">
                     {metric.metric_label}
                   </p>
                 </motion.div>
@@ -244,101 +268,143 @@ export default function ProgramDetailPage() {
         </section>
       )}
 
-      {/* 🌟 3. GAMBAR UTAMA (Thumbnail) */}
-      {thumbnail && (
-        <section className="max-w-5xl mx-auto px-4 lg:px-8 mb-16">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={fadeInUp}
-            className="w-full aspect-video md:aspect-[21/9] rounded-[32px] md:rounded-[40px] overflow-hidden shadow-lg border border-border bg-muted"
-          >
-            <img
-              src={thumbnail}
-              alt={project.title}
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-        </section>
-      )}
-
-      {/* 🌟 4. CERITA LENGKAP (Rich Text) */}
-      <section className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
+      {/* 🌟 3. CERITA LENGKAP (Rich Text) */}
+      <section
+        className={`max-w-[54rem] mx-auto px-4 lg:px-8 ${!project.metrics || project.metrics.length === 0 ? "pt-24" : "pt-10"} pb-16`}
+      >
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
           variants={fadeInUp}
-          className="bg-card border border-border rounded-[40px] p-8 md:p-12 lg:p-16 shadow-sm"
+          className="bg-card border border-border rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-xl shadow-primary/5"
         >
-          <div className="border-b border-border pb-8 mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-4">
-              <span className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <LayoutTemplate className="w-6 h-6 text-primary" />
-              </span>
-              Cerita Program
+          <div className="border-b border-border/60 pb-8 mb-10 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <BarChart3 className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+              Catatan Perjalanan Program
             </h2>
           </div>
 
           <div
-            className="quill-content text-lg text-muted-foreground leading-[1.9]"
+            className="quill-content text-lg md:text-[1.2rem] text-muted-foreground leading-relaxed md:leading-[1.9] font-medium"
             dangerouslySetInnerHTML={{ __html: project.description }}
           />
         </motion.div>
 
-        {/* Styling Khusus Konten Quill */}
+        {/* === CSS PENYESUAIAN KHUSUS UNTUK QUILL HTML === */}
         <style jsx global>{`
           .quill-content p {
             margin-bottom: 1.5em;
+            color: hsl(var(--foreground) / 0.85);
+          }
+          .quill-content h2,
+          .quill-content h3,
+          .quill-content h4 {
+            color: hsl(var(--foreground));
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
           }
           .quill-content h2 {
             font-size: 2rem;
-            color: hsl(var(--foreground));
-            font-weight: 800;
             margin-top: 2em;
             margin-bottom: 1em;
           }
           .quill-content h3 {
             font-size: 1.5rem;
-            color: hsl(var(--foreground));
-            font-weight: 700;
-            margin-top: 1.5em;
-            margin-bottom: 0.75em;
+            margin-top: 1.8em;
+            margin-bottom: 0.8em;
+          }
+          .quill-content a {
+            color: hsl(var(--primary));
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+            font-weight: 600;
+          }
+          .quill-content a:hover {
+            background-color: hsl(var(--primary) / 0.1);
+            text-decoration-color: transparent;
+          }
+          /* --- LIST --- */
+          .quill-content ul,
+          .quill-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.75em;
+            color: hsl(var(--foreground) / 0.85);
           }
           .quill-content ul {
             list-style-type: disc;
-            padding-left: 1.5rem;
-            margin-bottom: 1.5em;
           }
+          .quill-content ol {
+            list-style-type: decimal;
+          }
+          .quill-content li[data-list="bullet"] {
+            list-style-type: disc;
+          }
+          .quill-content li[data-list="ordered"] {
+            list-style-type: decimal;
+          }
+          .quill-content .ql-ui {
+            display: none;
+          }
+          .quill-content li {
+            margin-bottom: 0.5em;
+            padding-left: 0.5rem;
+          }
+          /* --- BLOCKQUOTE --- */
           .quill-content blockquote {
-            border-left: 4px solid hsl(var(--primary));
-            padding-left: 1.5rem;
-            color: hsl(var(--muted-foreground));
+            border-left: none;
             font-style: italic;
-            margin: 2em 0;
-            background: hsl(var(--secondary) / 0.5);
-            padding: 1.5rem;
-            border-radius: 0 16px 16px 0;
+            color: hsl(var(--foreground));
+            margin: 3em 0;
+            background: hsl(var(--secondary) / 0.3);
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
+            position: relative;
+            text-align: center;
+            font-size: 1.25em;
+            line-height: 1.6;
           }
+          .quill-content blockquote::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: Georgia, serif;
+            font-weight: 900;
+            color: hsl(var(--primary));
+            font-size: 4rem;
+            line-height: 1;
+            background: hsl(var(--card));
+            padding: 0 10px;
+            border-radius: 50%;
+          }
+          /* --- MEDIA --- */
           .quill-content img {
-            border-radius: 24px;
-            margin: 2em 0;
+            border-radius: 1.5rem;
+            margin: 2.5em auto;
             max-width: 100%;
-            border: 1px solid hsl(var(--border));
+            border: 1px solid hsl(var(--border) / 0.5);
+            box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.05);
           }
           .quill-content iframe {
             width: 100%;
             aspect-ratio: 16/9;
-            border-radius: 24px;
-            margin: 2em 0;
+            border-radius: 1.5rem;
+            margin: 2.5em 0;
+            border: none;
           }
         `}</style>
       </section>
 
-      {/* 🌟 5. GALERI FOTO */}
+      {/* 🌟 4. GALERI FOTO (Dokumentasi) */}
       {gallery.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-20 mt-8">
+        <section className="max-w-7xl mx-auto px-4 lg:px-8 py-16 border-t border-border/50">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -346,11 +412,12 @@ export default function ProgramDetailPage() {
             variants={fadeInUp}
             className="mb-12 text-center"
           >
-            <h2 className="text-3xl font-bold text-foreground mb-4 flex items-center justify-center gap-3">
-              <Images className="w-8 h-8 text-primary" /> Galeri Dokumentasi
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 flex items-center justify-center gap-4">
+              <Images className="w-8 h-8 text-primary" /> Lensa Dokumentasi
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Potret nyata perjalanan dan aktivitas program di lapangan.
+              Potret nyata perjalanan, aktivitas, dan senyum masyarakat di
+              lapangan.
             </p>
           </motion.div>
 
@@ -364,19 +431,19 @@ export default function ProgramDetailPage() {
             {gallery.map((img, index) => (
               <motion.div
                 key={index}
-                onClick={() => setSelectedImageIndex(index)} // <-- Trigger Lightbox
+                onClick={() => setSelectedImageIndex(index)}
                 variants={fadeInUp}
-                className="w-full aspect-square rounded-[32px] overflow-hidden group cursor-zoom-in shadow-sm border border-border bg-muted relative"
+                className="w-full aspect-square rounded-[2.5rem] overflow-hidden group cursor-zoom-in shadow-sm border border-border bg-muted relative"
               >
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-multiply flex items-center justify-center">
-                  <span className="text-white font-semibold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity delay-100">
+                <div className="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-multiply flex items-center justify-center backdrop-blur-[2px]">
+                  <span className="bg-background/90 text-foreground px-4 py-2 rounded-full text-sm font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-all delay-100 transform translate-y-4 group-hover:translate-y-0">
                     Lihat Penuh
                   </span>
                 </div>
                 <img
                   src={img.file_url}
-                  alt={`Galeri ${index + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  alt={`Dokumentasi Program ${index + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                 />
               </motion.div>
             ))}
@@ -384,21 +451,21 @@ export default function ProgramDetailPage() {
         </section>
       )}
 
-      {/* 🌟 6. LIGHTBOX / OVERLAY MODAL */}
+      {/* 🌟 5. LIGHTBOX / OVERLAY MODAL */}
       <AnimatePresence>
         {selectedImageIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-xl p-4 md:p-8"
-            onClick={() => setSelectedImageIndex(null)} // Klik diluar foto untuk tutup
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-2xl p-4 md:p-8"
+            onClick={() => setSelectedImageIndex(null)}
           >
             {/* Tombol Close di Pojok Kanan Atas */}
             <button
               onClick={() => setSelectedImageIndex(null)}
-              className="absolute top-6 right-6 md:top-8 md:right-8 p-3 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-colors z-50 group"
+              className="absolute top-6 right-6 md:top-8 md:right-8 p-3 bg-secondary/50 hover:bg-destructive hover:text-destructive-foreground rounded-full transition-colors z-50 group shadow-lg"
             >
               <X className="w-6 h-6 md:w-8 md:h-8 group-hover:rotate-90 transition-transform" />
             </button>
@@ -406,44 +473,46 @@ export default function ProgramDetailPage() {
             {/* Tombol Panah Kiri */}
             <button
               onClick={(e) => {
-                e.stopPropagation(); // Mencegah klik tembus ke background
+                e.stopPropagation();
                 setSelectedImageIndex((prev) =>
                   prev === 0 ? gallery.length - 1 : prev! - 1,
                 );
               }}
-              className="absolute left-4 md:left-12 p-3 md:p-4 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-colors z-50"
+              className="absolute left-4 md:left-10 p-3 md:p-4 bg-background/50 hover:bg-primary hover:text-primary-foreground border border-border rounded-full transition-colors z-50 shadow-lg"
             >
               <ChevronLeft className="w-8 h-8" />
             </button>
 
             {/* Kontainer Gambar Besar */}
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative max-w-5xl max-h-full w-full h-full flex flex-col items-center justify-center"
-              onClick={(e) => e.stopPropagation()} // Mencegah klik di area gambar agar tidak tertutup
+              className="relative max-w-6xl max-h-full w-full h-full flex flex-col items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={gallery[selectedImageIndex].file_url}
                 alt={`Tampilan Besar ${selectedImageIndex + 1}`}
-                className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl ring-1 ring-border/50"
               />
-              <p className="text-muted-foreground font-medium mt-6">
-                {selectedImageIndex + 1} / {gallery.length}
-              </p>
+              <div className="bg-card/80 backdrop-blur-md px-6 py-2 rounded-full border border-border mt-6">
+                <p className="text-foreground font-bold tracking-widest text-sm">
+                  {selectedImageIndex + 1} / {gallery.length}
+                </p>
+              </div>
             </motion.div>
 
             {/* Tombol Panah Kanan */}
             <button
               onClick={(e) => {
-                e.stopPropagation(); // Mencegah klik tembus ke background
+                e.stopPropagation();
                 setSelectedImageIndex((prev) =>
                   prev === gallery.length - 1 ? 0 : prev! + 1,
                 );
               }}
-              className="absolute right-4 md:right-12 p-3 md:p-4 bg-secondary/50 hover:bg-primary hover:text-primary-foreground rounded-full transition-colors z-50"
+              className="absolute right-4 md:right-10 p-3 md:p-4 bg-background/50 hover:bg-primary hover:text-primary-foreground border border-border rounded-full transition-colors z-50 shadow-lg"
             >
               <ChevronRight className="w-8 h-8" />
             </button>
