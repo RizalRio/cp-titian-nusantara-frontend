@@ -12,6 +12,7 @@ import {
   Shield,
   Quote,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +35,7 @@ const IconMap: Record<string, any> = {
   Shield: Shield,
 };
 
-// 🌟 Update Tipe Data
+// 🌟 Interface
 interface ValueItem {
   title: string;
   icon: string;
@@ -48,7 +49,6 @@ interface HomeContent {
   values?: ValueItem[];
 }
 
-// 🌟 Interface untuk Data Dinamis
 interface ServiceData {
   id: string;
   name: string;
@@ -66,7 +66,7 @@ interface TestimonialData {
 
 // --- Variabel Animasi (Framer Motion) ---
 const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
+  hidden: { opacity: 0, y: 40 },
   visible: {
     opacity: 1,
     y: 0,
@@ -78,38 +78,51 @@ const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.2, delayChildren: 0.3 },
+    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
   },
 };
 
-const blobAnimation = {
+// Animasi Gelembung yang lebih lembut dan organik
+const blob1Animation = {
   animate: {
-    scale: [1, 1.1, 1],
-    rotate: [0, 90, 0],
+    scale: [1, 1.05, 0.95, 1],
+    x: [0, 30, -20, 0],
+    y: [0, -40, 20, 0],
+    borderRadius: [
+      "40% 60% 70% 30% / 40% 50% 60% 50%",
+      "60% 40% 30% 70% / 60% 30% 70% 40%",
+      "50% 60% 40% 50% / 30% 60% 40% 60%",
+      "40% 60% 70% 30% / 40% 50% 60% 50%",
+    ],
+    transition: { duration: 25, repeat: Infinity, ease: "easeInOut" },
+  },
+};
+
+const blob2Animation = {
+  animate: {
+    scale: [1, 0.9, 1.1, 1],
+    x: [0, -30, 20, 0],
+    y: [0, 40, -20, 0],
     borderRadius: [
       "60% 40% 30% 70% / 60% 30% 70% 40%",
       "30% 60% 70% 40% / 50% 60% 30% 60%",
+      "50% 40% 60% 50% / 40% 50% 60% 40%",
       "60% 40% 30% 70% / 60% 30% 70% 40%",
     ],
-    transition: { duration: 20, repeat: Infinity, ease: "easeInOut" },
+    transition: { duration: 28, repeat: Infinity, ease: "easeInOut" },
   },
 };
 
 export function HomeTemplate({ content }: { content: HomeContent }) {
-  // 🌟 State untuk Ekosistem Layanan
   const [services, setServices] = useState<ServiceData[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
-
-  // 🌟 State untuk Testimoni
   const [testimonials, setTestimonials] = useState<TestimonialData[]>([]);
   const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(true);
 
-  // 🌟 Fetch Data dari API
   useEffect(() => {
-    // Fetch Services
     const fetchServices = async () => {
       try {
-        const res = await api.get("/api/v1/services");
+        const res = await api.get("/api/v1/services?is_flagship=true&limit=3");
         setServices(res.data.data || []);
       } catch (error) {
         console.error("Gagal memuat ekosistem layanan:", error);
@@ -118,13 +131,10 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
       }
     };
 
-    // Fetch Testimonials
     const fetchTestimonials = async () => {
       try {
         const res = await api.get("/api/v1/testimonials");
         const allTestimonials = res.data.data || [];
-
-        // Membatasi 5 data di state
         setTestimonials(allTestimonials.slice(0, 5));
       } catch (error) {
         console.error("Gagal memuat testimoni:", error);
@@ -138,114 +148,111 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
   }, []);
 
   return (
-    <div className="flex flex-col w-full bg-background font-sans text-foreground overflow-hidden">
-      {/* 🌟 1. HERO SECTION MODERN (Organic & Animated) */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden px-4 lg:px-8 bg-[#FAF9F6] dark:bg-background">
-        <div className="absolute inset-0 pointer-events-none">
+    <div className="flex flex-col w-full bg-background font-sans text-foreground overflow-hidden selection:bg-primary/20 selection:text-primary">
+      {/* 🌟 1. HERO SECTION (Organic & Minimalist) */}
+      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden px-4 lg:px-8">
+        {/* Background Visuals */}
+        <div className="absolute inset-0 z-0 bg-[#F9F9F7] dark:bg-background/95">
+          {/* Efek noise (grain) sangat halus untuk tekstur */}
+          <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+
+          {/* Gelembung Warna Organik (Blobs) */}
           <motion.div
-            variants={blobAnimation}
+            variants={blob1Animation}
             animate="animate"
-            className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] bg-primary/10 mix-blend-multiply filter blur-3xl opacity-70 dark:mix-blend-soft-light"
+            className="absolute top-[-10%] right-[-5%] w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] bg-emerald-100/60 dark:bg-emerald-900/20 mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-70"
           />
           <motion.div
-            variants={blobAnimation}
+            variants={blob2Animation}
             animate="animate"
-            transition={{ delay: 5 }}
-            className="absolute top-[40%] -left-[20%] w-[500px] h-[500px] bg-secondary/20 mix-blend-multiply filter blur-3xl opacity-60 dark:mix-blend-soft-light"
+            className="absolute bottom-[-10%] left-[-10%] w-[45vw] h-[45vw] max-w-[700px] max-h-[700px] bg-blue-100/60 dark:bg-blue-900/20 mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-70"
           />
+          <div className="absolute top-[20%] left-[20%] w-[30vw] h-[30vw] max-w-[500px] max-h-[500px] bg-amber-50/50 dark:bg-amber-900/10 mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-60 rounded-full animate-pulse-slow"></div>
         </div>
 
-        <div className="container mx-auto max-w-7xl z-10 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-              className="lg:col-span-7 space-y-8"
-            >
-              <motion.div
-                variants={fadeInUp}
-                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium text-primary bg-primary/5 border border-primary/10 backdrop-blur-md"
-              >
-                <Leaf className="w-4 h-4 mr-2" />
-                <span className="tracking-wide uppercase text-xs">
-                  Ekosistem Dampak Berkelanjutan
+        {/* Konten Hero (Pusat) */}
+        <div className="container mx-auto max-w-5xl z-10 relative flex flex-col items-center text-center mt-10">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="space-y-8"
+          >
+            {/* Lencana (Badge) */}
+            <motion.div variants={fadeInUp} className="flex justify-center">
+              <div className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-primary bg-background/60 backdrop-blur-md border border-primary/20 shadow-sm">
+                <Sparkles className="w-4 h-4 mr-2.5 text-amber-500" />
+                <span className="tracking-widest uppercase text-[11px]">
+                  Merajut Dampak Berkelanjutan
                 </span>
-              </motion.div>
-
-              <motion.h1
-                variants={fadeInUp}
-                className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]"
-              >
-                {content.hero_title ||
-                  "Merajut Keberagaman, Menciptakan Dampak."}
-              </motion.h1>
-
-              <motion.p
-                variants={fadeInUp}
-                className="text-xl text-muted-foreground leading-relaxed max-w-2xl"
-              >
-                {content.hero_subtitle ||
-                  "Ruang kolaborasi yang menempatkan manusia sebagai pusat perjalanan. Bersama wujudkan masa depan yang inklusif."}
-              </motion.p>
-
-              <motion.div variants={fadeInUp} className="pt-6">
-                <Button
-                  size="lg"
-                  className="h-14 px-10 text-base rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-105 transition-all duration-300 group"
-                  asChild
-                >
-                  <Link href="/kolaborasi">
-                    Mulai Perjalanan
-                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
-              className="lg:col-span-5 relative h-[500px] hidden lg:flex items-center justify-center"
-            >
-              <div className="relative z-10 w-[400px] h-[500px] rounded-[100px] bg-gradient-to-br from-primary/80 to-secondary overflow-hidden shadow-2xl transform rotate-3">
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>{" "}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Compass className="w-32 h-32 text-white opacity-80" />
-                </div>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 100,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                  className="absolute -bottom-24 -right-24 w-64 h-64 border-[20px] border-white/10 rounded-full dashed"
-                />
               </div>
-              <div className="absolute top-10 right-10 w-[380px] h-[480px] rounded-[100px] border-2 border-primary/30 z-0 transform -rotate-3" />
             </motion.div>
-          </div>
+
+            {/* Judul Utama */}
+            <motion.h1
+              variants={fadeInUp}
+              className="text-5xl sm:text-6xl lg:text-[5rem] font-extrabold tracking-tight text-foreground leading-[1.1] text-balance"
+            >
+              {content.hero_title || "Menyemai Harapan, Menuai Perubahan."}
+            </motion.h1>
+
+            {/* Teks Pendukung */}
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto font-medium"
+            >
+              {content.hero_subtitle ||
+                "Ruang kolaborasi akar rumput yang menempatkan manusia sebagai pusat perjalanan. Bersama wujudkan ekosistem inklusif."}
+            </motion.p>
+
+            {/* Tombol Aksi */}
+            <motion.div
+              variants={fadeInUp}
+              className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Button
+                size="lg"
+                className="h-14 px-10 text-base font-bold tracking-wide rounded-full shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300 group w-full sm:w-auto"
+                asChild
+              >
+                <Link href="/kolaborasi">
+                  Mari Berkolaborasi
+                  <ArrowRight className="ml-2.5 w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-14 px-10 text-base font-bold tracking-wide rounded-full bg-background/50 backdrop-blur-sm border-border hover:bg-background hover:text-primary transition-all duration-300 w-full sm:w-auto"
+                asChild
+              >
+                <Link href="/layanan">Jelajahi Program</Link>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
+
+        {/* Dekorasi Kaca (Glassmorphism Decoration) di Bawah Hero */}
+        <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none"></div>
       </section>
 
-      {/* 🌟 2. NILAI KAMI */}
-      <section className="py-32 relative z-10">
+      {/* 🌟 2. KOMPAS MORAL (NILAI KAMI) */}
+      <section className="py-32 relative z-20 bg-background">
         <div className="container mx-auto max-w-7xl px-4 lg:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeInUp}
-            className="text-center max-w-3xl mx-auto mb-24"
+            className="text-center max-w-3xl mx-auto mb-20"
           >
-            <h2 className="text-4xl font-bold tracking-tight text-foreground mb-6">
-              Kompas Moral Kami
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
+              Kompas Moral
             </h2>
-            <p className="text-xl text-muted-foreground">
-              Empat prinsip dasar yang memastikan setiap langkah tetap membumi
-              dan relevan.
+            <div className="w-16 h-1 bg-primary rounded-full mx-auto mb-6"></div>
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              Prinsip dasar yang memastikan setiap langkah pergerakan kita tetap
+              membumi dan relevan dengan kebutuhan.
             </p>
           </motion.div>
 
@@ -254,7 +261,7 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
           >
             {(content.values || []).map((item, idx) => {
               const IconComponent = IconMap[item.icon] || Leaf;
@@ -263,18 +270,22 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
                 <motion.div
                   key={idx}
                   variants={fadeInUp}
-                  whileHover={{ y: -10 }}
-                  className="group p-8 rounded-3xl bg-background/60 backdrop-blur-lg border border-white/20 shadow-lg dark:border-white/5 dark:bg-white/5 transition-all duration-300"
+                  className="group p-8 rounded-[2rem] bg-card border border-border shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-8 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                    <IconComponent className="w-7 h-7 text-primary-foreground" />
+                  {/* Latar hover subtle */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-primary transition-all duration-500">
+                      <IconComponent className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 text-foreground">
+                      {item.title}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {item.description}
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-foreground">
-                    {item.title}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
                 </motion.div>
               );
             })}
@@ -282,7 +293,8 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
         </div>
       </section>
 
-      {/* 🌟 3. EKOSISTEM LAYANAN (Dinamis dari Database - Dibatasi Maksimal 3) */}
+      {/* 🌟 3. EKOSISTEM LAYANAN */}
+      {/* ... (KODE EKOSISTEM LAYANAN TETAP SAMA SEPERTI SEBELUMNYA) ... */}
       <section className="py-32 bg-secondary/10 px-4 lg:px-8 border-t border-border">
         <div className="container mx-auto max-w-7xl">
           <motion.div
@@ -305,7 +317,7 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
             {!isLoadingServices && services.length > 0 && (
               <Button
                 size="lg"
-                className="rounded-full px-8 h-12 md:h-14 text-sm md:text-base font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform duration-300 w-full md:w-auto shrink-0"
+                className="rounded-full px-8 h-14 text-base font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform duration-300 w-full md:w-auto shrink-0"
                 asChild
               >
                 <Link href="/layanan">
@@ -327,12 +339,12 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
             <div className="text-center py-16 bg-card rounded-[32px] border border-border shadow-sm">
               <Leaf className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
               <p className="text-muted-foreground font-medium">
-                Belum ada ekosistem layanan yang dipublikasikan.
+                Belum ada ekosistem layanan unggulan.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.slice(0, 3).map((layanan, idx) => (
+              {services.map((layanan, idx) => (
                 <Link
                   href={`/layanan/${layanan.slug}`}
                   key={layanan.id || idx}
@@ -343,8 +355,8 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
                     whileInView="visible"
                     viewport={{ once: true }}
                     variants={fadeInUp}
-                    transition={{ delay: idx * 0.15 }}
-                    className="flex flex-col h-full p-8 md:p-10 rounded-[32px] bg-background border border-border shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-2 transition-all duration-500"
+                    transition={{ delay: idx * 0.1 }}
+                    className="flex flex-col h-full p-8 md:p-10 rounded-[2rem] bg-card border border-border shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-2 transition-all duration-500"
                   >
                     <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
                       <Leaf className="w-7 h-7" />
@@ -359,15 +371,10 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
                     </p>
 
                     <div className="mt-auto pt-6 border-t border-border/50">
-                      <Button
-                        variant="outline"
-                        className="w-full h-12 rounded-full border-primary/20 text-primary bg-transparent group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300 flex items-center justify-between px-6 pointer-events-none"
-                      >
-                        <span className="font-semibold tracking-wide text-base">
-                          Mulai perjalanan
-                        </span>
-                        <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
-                      </Button>
+                      <div className="flex items-center justify-between text-primary font-semibold tracking-wide text-base group-hover:px-2 transition-all duration-300">
+                        <span>Mulai perjalanan</span>
+                        <ArrowRight className="w-5 h-5 transform group-hover:translate-x-2 transition-transform duration-300" />
+                      </div>
                     </div>
                   </motion.div>
                 </Link>
@@ -377,74 +384,10 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
         </div>
       </section>
 
-      {/* 🌟 4. TESTIMONI (Dinamis dari Database - Dibatasi Maksimal 5) */}
-      {!isLoadingTestimonials && testimonials.length > 0 && (
-        <section className="py-32 relative overflow-hidden">
-          <Quote className="absolute top-10 left-10 w-64 h-64 text-primary/5 rotate-12 pointer-events-none" />
-
-          <div className="container mx-auto max-w-6xl px-4 text-center relative z-10">
-            <motion.h2
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInUp}
-              className="text-4xl font-bold tracking-tight text-foreground mb-20"
-            >
-              Resonansi Perjalanan
-            </motion.h2>
-
-            <Carousel className="w-full">
-              <CarouselContent>
-                {/* 👇 Pembatasan slice(0,5) diletakkan di JSX agar lebih tegas 👇 */}
-                {testimonials.slice(0, 5).map((testimoni) => (
-                  <CarouselItem key={testimoni.id}>
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.8 }}
-                      className="p-6 md:p-12"
-                    >
-                      <p className="text-3xl md:text-4xl/snug font-medium text-foreground leading-relaxed mb-12 font-serif italic opacity-90 line-clamp-4">
-                        "{testimoni.content}"
-                      </p>
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="w-16 h-1 bg-primary/30 mb-6 rounded-full"></div>
-
-                        {/* Menampilkan Foto Profil jika ada */}
-                        {testimoni.avatar_url && (
-                          <img
-                            src={testimoni.avatar_url}
-                            alt={testimoni.author_name}
-                            className="w-16 h-16 rounded-full object-cover mb-4 border-2 border-primary/20 shadow-sm"
-                          />
-                        )}
-
-                        <h4 className="font-bold text-xl text-foreground">
-                          {testimoni.author_name}
-                        </h4>
-                        <p className="text-primary font-medium tracking-wide text-sm uppercase mt-2">
-                          {testimoni.author_role}
-                        </p>
-                      </div>
-                    </motion.div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {testimonials.length > 1 && (
-                <div className="hidden md:flex justify-center gap-4 mt-8">
-                  <CarouselPrevious className="static translate-y-0 bg-background hover:bg-primary hover:text-primary-foreground border-2 border-border h-12 w-12" />
-                  <CarouselNext className="static translate-y-0 bg-background hover:bg-primary hover:text-primary-foreground border-2 border-border h-12 w-12" />
-                </div>
-              )}
-            </Carousel>
-          </div>
-        </section>
-      )}
-
-      {/* 🌟 5. QUOTE MANIFESTO */}
-      <section className="py-40 relative flex items-center justify-center overflow-hidden bg-foreground text-background">
+      {/* 🌟 4. QUOTE MANIFESTO */}
+      <section className="py-40 relative flex items-center justify-center overflow-hidden bg-primary text-primary-foreground">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/40 via-background to-background animate-pulse-slow"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent animate-pulse-slow"></div>
         </div>
 
         <motion.div
@@ -454,16 +397,16 @@ export function HomeTemplate({ content }: { content: HomeContent }) {
           viewport={{ once: true }}
           className="container mx-auto max-w-5xl relative z-10 text-center px-4"
         >
-          <Quote className="w-16 h-16 text-primary mx-auto mb-10 opacity-80" />
-          <blockquote className="text-4xl md:text-5xl lg:text-6xl/tight font-bold tracking-tight leading-tight">
+          <Quote className="w-16 h-16 text-white/50 mx-auto mb-10" />
+          <blockquote className="text-4xl md:text-5xl lg:text-6xl/tight font-bold tracking-tight leading-tight text-balance">
             "
             {content.manifesto_quote ||
               "Manusia sebagai pusat, keberagaman sebagai kekuatan. Melangkah bersama untuk dampak yang lebih luas."}
             "
           </blockquote>
           <div className="mt-16 flex flex-col items-center justify-center gap-6">
-            <div className="h-1 w-24 bg-primary rounded-full" />
-            <span className="font-bold tracking-[0.2em] uppercase text-lg text-primary">
+            <div className="h-1 w-24 bg-white/30 rounded-full" />
+            <span className="font-bold tracking-[0.2em] uppercase text-sm text-white/80">
               Titian Nusantara
             </span>
           </div>
