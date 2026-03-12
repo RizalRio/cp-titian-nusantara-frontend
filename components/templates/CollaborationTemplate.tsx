@@ -78,7 +78,7 @@ export function CollaborationTemplate({
   data?: Partial<KolaborasiData>;
   slug?: string;
 }) {
-  // --- DATA FALLBACK DINAMIS (Berdasarkan Slug dari Navbar) ---
+  // --- DATA FALLBACK DINAMIS (Berjaga-jaga jika data CMS kosong / gagal muat) ---
   const fallbackMap: Record<string, KolaborasiData> = {
     "institusi-publik": {
       badge_text: "Sinergi B2G (Pemerintah)",
@@ -148,19 +148,19 @@ export function CollaborationTemplate({
     },
   };
 
-  // Menentukan fallback bawaan
+  // Menentukan fallback bawaan berdasarkan slug (jika ada)
   const currentFallback =
     slug && fallbackMap[slug]
       ? fallbackMap[slug]
       : fallbackMap["institusi-publik"];
 
-  // Timpa dengan data dari CMS (Mengutamakan data CMS jika tidak undefined)
+  // 🌟 PENGGABUNGAN DATA (Timpa Fallback dengan Data Asli dari CMS)
   const content: KolaborasiData = {
     ...currentFallback,
     ...data,
   };
 
-  // Pastikan benefits tidak pecah jika CMS mengirim array kosong
+  // Pastikan array benefits tidak pecah jika CMS mengirim array kosong
   const renderBenefits = data?.benefits?.length
     ? data.benefits
     : currentFallback.benefits;
@@ -226,7 +226,7 @@ export function CollaborationTemplate({
                   className="h-14 px-8 rounded-full bg-background/50 backdrop-blur-sm border-border hover:bg-background transition-all duration-300 text-base font-bold"
                   asChild
                 >
-                  <Link href="/layanan">Pelajari Layanan Kami</Link>
+                  <Link href="/model-kolaborasi">Pelajari Model Kerjasama</Link>
                 </Button>
               </motion.div>
             </motion.div>

@@ -18,7 +18,7 @@ import Link from "next/link";
 export interface ModelItem {
   title: string;
   description: string;
-  features: string[];
+  features: string[] | string; // Bisa menerima array (dari API) atau string (dari input admin belum di-split)
   recommended_for: string;
 }
 
@@ -211,6 +211,14 @@ export function ModelKolaborasiTemplate({
     : fallbackPerbandingan;
   const alur = data?.alur?.length ? data.alur : fallbackAlur;
   const faqs = data?.faqs?.length ? data.faqs : fallbackFaqs;
+
+  // Helper function untuk merender features array/string
+  const renderFeatures = (featuresData: string[] | string) => {
+    if (Array.isArray(featuresData)) return featuresData;
+    if (typeof featuresData === "string")
+      return featuresData.split(",").map((f) => f.trim());
+    return [];
+  };
 
   return (
     <div className="flex flex-col w-full bg-[#F9F9F7] dark:bg-background font-sans text-foreground overflow-hidden min-h-screen">
@@ -430,17 +438,19 @@ export function ModelKolaborasiTemplate({
                       <div className="w-8 h-px bg-primary"></div> Fokus Eksekusi
                     </h4>
                     <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {models[activeTab].features.map((feat, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-4 bg-secondary/30 p-5 rounded-2xl hover:bg-secondary/60 transition-colors"
-                        >
-                          <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1.5 shrink-0"></div>
-                          <span className="text-foreground text-[0.95rem] leading-relaxed font-medium">
-                            {feat}
-                          </span>
-                        </li>
-                      ))}
+                      {renderFeatures(models[activeTab].features).map(
+                        (feat, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-4 bg-secondary/30 p-5 rounded-2xl hover:bg-secondary/60 transition-colors"
+                          >
+                            <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1.5 shrink-0"></div>
+                            <span className="text-foreground text-[0.95rem] leading-relaxed font-medium">
+                              {feat}
+                            </span>
+                          </li>
+                        ),
+                      )}
                     </ul>
 
                     <div className="mt-8 pt-6 border-t border-border/60 flex flex-wrap items-center gap-3">
