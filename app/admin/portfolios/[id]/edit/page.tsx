@@ -9,10 +9,10 @@ import {
   Compass,
   Plus,
   X,
-  MapPin,
   Layers,
   Quote,
   Images,
+  MapPinned,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,6 @@ export default function EditPortfolioPage() {
     sector: "",
     short_story: "",
     impact: "",
-    location: "",
     status: "draft",
     thumbnail_url: "",
     gallery_urls: [""],
@@ -58,6 +57,9 @@ export default function EditPortfolioPage() {
       },
     ],
   });
+
+  // 🌟 STATE KHUSUS LOKASI DINAMIS (Nama, Lat, Lng)
+  const [locations, setLocations] = useState([{ name: "", lat: "", lng: "" }]);
 
   // 🌟 1. FETCH DATA LAMA DARI BACKEND
   useEffect(() => {
@@ -89,12 +91,26 @@ export default function EditPortfolioPage() {
                 },
               ];
 
+        // 🌟 PENANGANAN LOKASI: Pecah array string "Nama|Lat|Lng" kembali ke object form
+        let parsedLocations = [{ name: "", lat: "", lng: "" }];
+        if (
+          data.locations &&
+          Array.isArray(data.locations) &&
+          data.locations.length > 0
+        ) {
+          parsedLocations = data.locations.map((loc: any) => ({
+            name: loc.name || "",
+            lat: loc.lat ? loc.lat.toString() : "",
+            lng: loc.lng ? loc.lng.toString() : "",
+          }));
+        }
+        setLocations(parsedLocations);
+
         setFormData({
           title: data.title,
           sector: data.sector,
           short_story: data.short_story,
           impact: data.impact,
-          location: data.location,
           status: data.status,
           thumbnail_url: thumbnail,
           gallery_urls: gallery.length > 0 ? gallery : [""],
@@ -111,7 +127,29 @@ export default function EditPortfolioPage() {
     if (portfolioId) fetchPortfolio();
   }, [portfolioId, router]);
 
-  // 2. FUNGSI PENGELOLA TESTIMONI DINAMIS
+  // 2. FUNGSI PENGELOLA LOKASI DINAMIS
+  const handleLocationChange = (
+    index: number,
+    field: string,
+    value: string,
+  ) => {
+    const newLocations = [...locations];
+    newLocations[index] = { ...newLocations[index], [field]: value };
+    setLocations(newLocations);
+  };
+
+  const addLocation = () => {
+    setLocations([...locations, { name: "", lat: "", lng: "" }]);
+  };
+
+  const removeLocation = (index: number) => {
+    const newLocations = locations.filter((_, i) => i !== index);
+    setLocations(
+      newLocations.length ? newLocations : [{ name: "", lat: "", lng: "" }],
+    );
+  };
+
+  // 3. FUNGSI PENGELOLA TESTIMONI DINAMIS
   const handleTestimonialChange = (
     index: number,
     field: string,
@@ -156,7 +194,7 @@ export default function EditPortfolioPage() {
     });
   };
 
-  // 3. FUNGSI PENGELOLA GALERI FOTO
+  // 4. FUNGSI PENGELOLA GALERI FOTO
   const handleGalleryChange = (index: number, url: string) => {
     const newGallery = [...formData.gallery_urls];
     newGallery[index] = url;
@@ -175,11 +213,11 @@ export default function EditPortfolioPage() {
     });
   };
 
-  // 4. SUBMIT UPDATE KE BACKEND
+  // 5. SUBMIT UPDATE KE BACKEND
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.sector) return alert("Silakan pilih Sektor Jejak Karya.");
+    if (!formData.sector) return alert("Silakan isi Sektor Jejak Karya.");
 
     // Bersihkan data kosong
     const cleanedGallery = formData.gallery_urls.filter(
@@ -189,8 +227,22 @@ export default function EditPortfolioPage() {
       (t) => t.author_name.trim() !== "" && t.content.trim() !== "",
     );
 
+    // Proses Lokasi Dinamis
+    const validLocations = locations.filter((loc) => loc.name.trim() !== "");
+
+    if (validLocations.length === 0) {
+      return alert("Minimal satu Titik Lokasi (Nama Wilayah) wajib diisi!");
+    }
+
+    const formattedLocations = validLocations.map((loc) => ({
+      name: loc.name.trim(),
+      lat: parseFloat(loc.lat) || 0,
+      lng: parseFloat(loc.lng) || 0,
+    }));
+
     const payload = {
       ...formData,
+      locations: formattedLocations,
       gallery_urls: cleanedGallery,
       testimonials: cleanedTestimonials,
     };
@@ -243,7 +295,7 @@ export default function EditPortfolioPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* 📝 KOLOM KIRI (Lebar 8/12) */}
+          {/* 🌟 KOLOM KIRI (Lebar 8/12) */}
           <div className="lg:col-span-8 space-y-8">
             <Card className="rounded-[24px] shadow-sm border-border overflow-hidden bg-card">
               <CardContent className="p-8 space-y-8">
@@ -264,7 +316,7 @@ export default function EditPortfolioPage() {
                     />
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 md:col-span-2">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                       <Layers className="w-4 h-4 text-muted-foreground" />{" "}
                       Sektor Jejak Karya
@@ -274,22 +326,6 @@ export default function EditPortfolioPage() {
                       value={formData.sector}
                       onChange={(e) =>
                         setFormData({ ...formData, sector: e.target.value })
-                      }
-                      required
-                      className="rounded-xl border-border bg-muted/10 h-12"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />{" "}
-                      Lokasi / Wilayah
-                    </Label>
-                    <Input
-                      placeholder="Misal: Sumba Timur, NTT"
-                      value={formData.location}
-                      onChange={(e) =>
-                        setFormData({ ...formData, location: e.target.value })
                       }
                       required
                       className="rounded-xl border-border bg-muted/10 h-12"
@@ -325,6 +361,102 @@ export default function EditPortfolioPage() {
                     className="min-h-[120px] rounded-xl resize-none border-border focus-visible:ring-primary/20 shadow-sm"
                     required
                   />
+                </div>
+
+                {/* 🌟 LOKASI (Dynamic Form) */}
+                <div className="space-y-4 pt-6 border-t border-border">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <Label className="text-base font-semibold text-foreground flex items-center gap-2">
+                        <MapPinned className="w-4 h-4 text-primary" /> Titik
+                        Lokasi & Koordinat
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Satu Jejak Karya bisa memiliki banyak titik penyebaran
+                        di peta.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {locations.map((loc, index) => (
+                      <div
+                        key={index}
+                        className="relative p-5 bg-muted/10 rounded-2xl border border-border shadow-sm flex flex-col md:flex-row gap-4 items-start"
+                      >
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => removeLocation(index)}
+                          className="absolute -top-3 -right-3 w-8 h-8 rounded-full shadow-md z-10"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+
+                        <div className="flex-1 space-y-2 w-full md:w-auto">
+                          <Label className="text-xs text-muted-foreground">
+                            Nama Wilayah
+                          </Label>
+                          <Input
+                            placeholder="Cth: Yogyakarta"
+                            value={loc.name}
+                            onChange={(e) =>
+                              handleLocationChange(
+                                index,
+                                "name",
+                                e.target.value,
+                              )
+                            }
+                            className="bg-background rounded-xl h-11"
+                            required
+                          />
+                        </div>
+
+                        <div className="flex-1 space-y-2 w-full md:w-auto">
+                          <Label className="text-xs text-muted-foreground">
+                            Latitude
+                          </Label>
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="Cth: -7.7956"
+                            value={loc.lat}
+                            onChange={(e) =>
+                              handleLocationChange(index, "lat", e.target.value)
+                            }
+                            className="bg-background rounded-xl h-11"
+                          />
+                        </div>
+
+                        <div className="flex-1 space-y-2 w-full md:w-auto">
+                          <Label className="text-xs text-muted-foreground">
+                            Longitude
+                          </Label>
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="Cth: 110.3695"
+                            value={loc.lng}
+                            onChange={(e) =>
+                              handleLocationChange(index, "lng", e.target.value)
+                            }
+                            className="bg-background rounded-xl h-11"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addLocation}
+                      className="w-full border-dashed border-primary/30 text-primary hover:bg-primary/5 rounded-xl h-12"
+                    >
+                      <Plus className="w-4 h-4 mr-2" /> Tambah Titik Lokasi
+                      Lainnya
+                    </Button>
+                  </div>
                 </div>
 
                 {/* 🌟 TESTIMONI (Dynamic Form) */}
@@ -449,7 +581,7 @@ export default function EditPortfolioPage() {
             </Card>
           </div>
 
-          {/* ⚙️ KOLOM KANAN (Lebar 4/12) */}
+          {/* 🌟 KOLOM KANAN (Lebar 4/12) */}
           <div className="lg:col-span-4 space-y-6 sticky top-6">
             <Card className="rounded-[24px] shadow-sm border-border bg-card">
               <CardContent className="p-6 space-y-8">

@@ -45,12 +45,19 @@ import {
 
 import api from "@/lib/api";
 
+// 🌟 INTERFACE DIPERBARUI
+interface PortfolioLocation {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 interface Portfolio {
   id: string;
   title: string;
   slug: string;
   sector: string;
-  location: string;
+  locations?: PortfolioLocation[]; // Menggunakan array object sesuai model database terbaru
   status: string;
   created_at: string;
 }
@@ -159,6 +166,18 @@ export default function PortfoliosPage() {
       default:
         return "bg-slate-50 text-slate-700 border-slate-200";
     }
+  };
+
+  // 🌟 HELPER UNTUK FORMAT LOKASI (Max 3, dipisah koma)
+  const formatLocationDisplay = (locations?: PortfolioLocation[]) => {
+    if (!locations || locations.length === 0) return "-";
+
+    // 🌟 LANGSUNG AMBIL NAMA DARI OBJECT
+    const locationNames = locations.map((loc) => loc.name).filter(Boolean);
+
+    if (locationNames.length === 0) return "-";
+    if (locationNames.length <= 3) return locationNames.join(", ");
+    return `${locationNames.slice(0, 3).join(", ")}, dll.`;
   };
 
   return (
@@ -292,9 +311,10 @@ export default function PortfoliosPage() {
                         {portfolio.title}
                       </p>
                       <div className="flex items-center text-muted-foreground text-xs mt-1.5">
-                        <MapPin className="w-3.5 h-3.5 mr-1 opacity-70" />
+                        <MapPin className="w-3.5 h-3.5 mr-1 opacity-70 shrink-0" />
                         <span className="truncate max-w-[250px]">
-                          {portfolio.location || "-"}
+                          {/* 🌟 PEMANGGILAN FUNGSI FORMAT LOKASI */}
+                          {formatLocationDisplay(portfolio.locations)}
                         </span>
                       </div>
                     </TableCell>

@@ -11,6 +11,7 @@ import {
   Share2,
   Loader2,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
@@ -37,12 +38,18 @@ const fadeInUp = {
   },
 };
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+};
+
 export default function WawasanDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
 
   const [post, setPost] = useState<PostDetail | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<PostDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -50,7 +57,23 @@ export default function WawasanDetailPage() {
       setIsLoading(true);
       try {
         const res = await api.get(`/api/v1/posts/slug/${slug}`);
-        setPost(res.data.data);
+        const currentPost = res.data.data;
+        setPost(currentPost);
+        try {
+          const relRes = await api.get(
+            "/api/v1/posts?limit=5&status=published",
+          );
+          const allPosts = relRes.data.data || [];
+
+          // Saring agar post yang sedang dibaca tidak muncul, lalu ambil maksimal 3
+          const filteredRelated = allPosts
+            .filter((p: PostDetail) => p.id !== currentPost.id)
+            .slice(0, 3);
+
+          setRelatedPosts(filteredRelated);
+        } catch (relError) {
+          console.error("Gagal memuat postingan terkait", relError);
+        }
       } catch (error) {
         console.error("Gagal memuat detail artikel", error);
         router.push("/wawasan"); // Kembalikan ke halaman daftar jika tidak ditemukan
@@ -338,28 +361,106 @@ export default function WawasanDetailPage() {
               border: none;
             }
           `}</style>
-        </motion.div>
 
-        {/* 🌟 TAGS ARTIKEL */}
-        {post.tags && post.tags.length > 0 && (
+          {/* 🌟 TAGS ARTIKEL */}
+          {post.tags && post.tags.length > 0 && (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              className="mt-16 flex flex-wrap items-center gap-3 px-2"
+            >
+              <Tag className="w-5 h-5 text-muted-foreground mr-2" />
+              {post.tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="px-4 py-2 rounded-full bg-card border border-border text-muted-foreground text-sm font-medium hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors cursor-pointer shadow-sm"
+                >
+                  #{tag.name}
+                </span>
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
+      </article>
+
+      {/* 🌟 POSTINGAN TERKAIT */}
+      {relatedPosts.length > 0 && (
+        <section className="max-w-4xl mx-auto px-4 lg:px-8 mt-8">
           <motion.div
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
             variants={fadeInUp}
-            className="mt-10 flex flex-wrap items-center gap-3 px-2"
+            className="mb-8"
           >
-            <Tag className="w-5 h-5 text-muted-foreground mr-2" />
-            {post.tags.map((tag) => (
-              <span
-                key={tag.id}
-                className="px-4 py-2 rounded-full bg-card border border-border text-muted-foreground text-sm font-medium hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors cursor-pointer shadow-sm"
-              >
-                #{tag.name}
-              </span>
-            ))}
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+              Postingan Terkait
+            </h2>
+            <div className="w-16 h-1 bg-primary rounded-full mt-4" />
           </motion.div>
-        )}
-      </article>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+          >
+            {relatedPosts.map((relPost) => {
+              const thumb = relPost.media?.find(
+                (m) => m.media_type === "thumbnail",
+              )?.file_url;
+              return (
+                <motion.div
+                  key={relPost.id}
+                  variants={fadeInUp}
+                  className="h-full"
+                >
+                  <Link
+                    href={`/wawasan/${relPost.slug}`}
+                    className="group flex flex-col h-full bg-card rounded-[24px] overflow-hidden border border-border shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-500"
+                  >
+                    {/* Thumbnail Image */}
+                    <div className="w-full aspect-[4/3] bg-muted relative overflow-hidden shrink-0">
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt={relPost.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Leaf className="w-10 h-10 text-primary/20" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="p-6 flex flex-col flex-grow">
+                      <span className="text-xs font-bold uppercase tracking-wider text-primary mb-3">
+                        {relPost.category?.name || "Wawasan"}
+                      </span>
+
+                      <h3 className="text-lg font-bold text-foreground mb-4 line-clamp-2 group-hover:text-primary transition-colors">
+                        {relPost.title}
+                      </h3>
+
+                      {/* Tombol Panah Bawah Kanan */}
+                      <div className="mt-auto flex justify-end pt-4 border-t border-border/50">
+                        <div className="w-auto h-auto p-2 rounded-xl bg-secondary/50 text-foreground group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all duration-300">
+                          Baca
+                          <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </section>
+      )}
     </div>
   );
 }

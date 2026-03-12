@@ -17,9 +17,20 @@ import {
   Target,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import api from "@/lib/api";
 
-// 🌟 INTERFACE
+const PortfolioMap = dynamic(() => import("@/components/public/PortfolioMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full aspect-[4/3] md:aspect-[21/9] rounded-[2.5rem] bg-secondary/30 border border-border flex items-center justify-center">
+      <p className="text-muted-foreground animate-pulse font-medium">
+        Memuat Peta Ekosistem...
+      </p>
+    </div>
+  ),
+});
+
 interface Testimonial {
   author_name: string;
   author_role: string;
@@ -27,18 +38,24 @@ interface Testimonial {
   avatar_url?: string;
 }
 
+interface PortfolioLocation {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 interface Portfolio {
+  id: string;
   title: string;
-  sector: string; // Bisa string atau object
+  sector: string;
   category?: { name: string };
   short_story: string;
   impact: string;
-  location: string;
+  locations?: PortfolioLocation[];
   testimonials?: Testimonial[];
   media?: { file_url: string; media_type: string }[];
 }
 
-// 🌟 ANIMASI
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
@@ -57,11 +74,12 @@ export default function JejakKaryaSektorPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State & Ref untuk Fitur Lightbox & Carousel
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
+
   const carouselRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -78,37 +96,30 @@ export default function JejakKaryaSektorPage() {
     if (slug) fetchPortfolio();
   }, [slug, router]);
 
-  // Pemilahan Media
   const thumbnail = portfolio?.media?.find(
     (m) => m.media_type === "thumbnail",
   )?.file_url;
   const gallery =
     portfolio?.media?.filter((m) => m.media_type === "gallery") || [];
 
-  // Keyboard Navigation untuk Lightbox
+  // Keyboard navigation for Lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedImageIndex === null) return;
-
-      if (e.key === "Escape") {
-        setSelectedImageIndex(null);
-      } else if (e.key === "ArrowRight") {
+      if (e.key === "Escape") setSelectedImageIndex(null);
+      else if (e.key === "ArrowRight")
         setSelectedImageIndex((prev) =>
           prev === gallery.length - 1 ? 0 : prev! + 1,
         );
-      } else if (e.key === "ArrowLeft") {
+      else if (e.key === "ArrowLeft")
         setSelectedImageIndex((prev) =>
           prev === 0 ? gallery.length - 1 : prev! - 1,
         );
-      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    if (selectedImageIndex !== null) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    if (selectedImageIndex !== null) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "auto";
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -116,11 +127,22 @@ export default function JejakKaryaSektorPage() {
     };
   }, [selectedImageIndex, gallery.length]);
 
-  // Handler Scroll Carousel Testimoni
+  // Scroll Testimoni
   const scrollTestimonials = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = direction === "left" ? -400 : 400;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  // Scroll Galeri
+  const scrollGallery = (direction: "left" | "right") => {
+    if (galleryRef.current && galleryRef.current.children.length > 0) {
+      const itemNode = galleryRef.current.children[0] as HTMLElement;
+      // Mengambil lebar 1 foto + gap 24px (1.5rem)
+      const itemWidth = itemNode.clientWidth + 24;
+      const scrollAmount = direction === "left" ? -itemWidth : itemWidth;
+      galleryRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
@@ -137,7 +159,6 @@ export default function JejakKaryaSektorPage() {
 
   if (!portfolio) return null;
 
-  // Deteksi nama sektor dengan aman
   const displaySectorName =
     portfolio.category?.name ||
     (typeof portfolio.sector === "object"
@@ -147,10 +168,14 @@ export default function JejakKaryaSektorPage() {
 
   const isCarousel =
     portfolio.testimonials && portfolio.testimonials.length > 2;
+  const isGalleryCarousel = gallery.length > 3;
+
+  const locationList = portfolio.locations
+    ? portfolio.locations.map((loc) => loc.name).filter((name) => name !== "")
+    : [];
 
   return (
     <div className="min-h-screen bg-[#F9F9F7] dark:bg-background text-foreground font-sans pb-32">
-      {/* GLOBAL CSS UNTUK HIDE SCROLLBAR CAROUSEL */}
       <style jsx global>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
@@ -196,7 +221,7 @@ export default function JejakKaryaSektorPage() {
         </div>
       </section>
 
-      {/* 🌟 2. THUMBNAIL UTAMA (Overlapping Hero) */}
+      {/* 🌟 2. THUMBNAIL UTAMA */}
       {thumbnail && (
         <section className="max-w-6xl mx-auto px-4 lg:px-8 relative z-20 -mt-20 mb-20">
           <motion.div
@@ -216,7 +241,7 @@ export default function JejakKaryaSektorPage() {
       )}
 
       <div className="max-w-[54rem] mx-auto px-6 lg:px-8">
-        {/* 🌟 3. LATAR BELAKANG & KONTEKS (Editorial Reading Width) */}
+        {/* 🌟 3. LATAR BELAKANG & KONTEKS */}
         <section className="py-12">
           <motion.div
             initial="hidden"
@@ -255,8 +280,8 @@ export default function JejakKaryaSektorPage() {
           </motion.div>
         </section>
 
-        {/* 🌟 5. WILAYAH KONTEKS (Peta Lokasi) */}
-        {portfolio.location && (
+        {/* 🌟 5. WILAYAH KONTEKS */}
+        {locationList.length > 0 && (
           <section className="py-12">
             <motion.div
               initial="hidden"
@@ -268,26 +293,25 @@ export default function JejakKaryaSektorPage() {
                 <MapPinned className="text-primary w-8 h-8" />
                 Titik Eksekusi
               </h2>
-              <p className="text-lg text-foreground font-semibold mb-8 bg-secondary/50 px-5 py-2.5 rounded-full inline-flex border border-border/50">
-                {portfolio.location}
-              </p>
-              <div className="w-full aspect-video rounded-[2.5rem] overflow-hidden border border-border shadow-sm bg-secondary/30 relative">
-                <iframe
-                  title="Peta Lokasi"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(portfolio.location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                ></iframe>
+
+              <div className="flex flex-wrap gap-3 mb-8">
+                {locationList.map((loc, idx) => (
+                  <span
+                    key={idx}
+                    className="text-base text-foreground font-semibold bg-secondary/50 px-5 py-2.5 rounded-full inline-flex border border-border/50 shadow-sm"
+                  >
+                    {loc}
+                  </span>
+                ))}
               </div>
+
+              <PortfolioMap currentPortfolioId={portfolio.id} />
             </motion.div>
           </section>
         )}
       </div>
 
-      {/* 🌟 6. TESTIMONI (CAROUSEL DINAMIS) */}
+      {/* 🌟 6. TESTIMONI */}
       {portfolio.testimonials && portfolio.testimonials.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 lg:px-8 py-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -313,17 +337,17 @@ export default function JejakKaryaSektorPage() {
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={fadeInUp}
-                className="flex items-center gap-3"
+                className="hidden md:flex items-center gap-3"
               >
                 <button
                   onClick={() => scrollTestimonials("left")}
-                  className="w-14 h-14 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary flex items-center justify-center transition-all shadow-sm"
+                  className="w-14 h-14 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-all shadow-sm"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
                 <button
                   onClick={() => scrollTestimonials("right")}
-                  className="w-14 h-14 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary flex items-center justify-center transition-all shadow-sm"
+                  className="w-14 h-14 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-all shadow-sm"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
@@ -347,18 +371,12 @@ export default function JejakKaryaSektorPage() {
               <motion.div
                 key={idx}
                 variants={fadeInUp}
-                className={`bg-card p-10 lg:p-12 rounded-[3rem] border border-border shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden group flex flex-col ${
-                  isCarousel
-                    ? "w-[85vw] sm:w-[420px] snap-start shrink-0"
-                    : "w-full"
-                }`}
+                className={`bg-card p-10 lg:p-12 rounded-[3rem] border border-border shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden group flex flex-col ${isCarousel ? "w-[85vw] sm:w-[420px] snap-start shrink-0" : "w-full"}`}
               >
                 <Quote className="absolute top-8 right-8 w-24 h-24 text-primary/5 group-hover:text-primary/10 transition-colors -rotate-12 pointer-events-none" />
-
                 <p className="text-[1.15rem] text-foreground italic leading-relaxed mb-10 relative z-10 flex-grow font-medium">
                   "{testi.content}"
                 </p>
-
                 <div className="flex items-center gap-5 mt-auto relative z-10 pt-6 border-t border-border/60">
                   <div className="w-14 h-14 rounded-full bg-secondary overflow-hidden flex-shrink-0 border-2 border-background shadow-sm">
                     {testi.avatar_url ? (
@@ -408,33 +426,56 @@ export default function JejakKaryaSektorPage() {
             </p>
           </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={staggerContainer}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-          >
-            {gallery.map((img, index) => (
-              <motion.div
-                key={index}
-                onClick={() => setSelectedImageIndex(index)}
-                variants={fadeInUp}
-                className="w-full aspect-square rounded-[2.5rem] overflow-hidden group cursor-zoom-in shadow-sm border border-border bg-muted relative"
+          <div className="relative w-full max-w-[85rem] mx-auto md:px-16 py-4">
+            {isGalleryCarousel && (
+              <button
+                onClick={() => scrollGallery("left")}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full border border-border bg-card/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground items-center justify-center transition-all shadow-md z-20"
               >
-                <div className="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-multiply flex items-center justify-center backdrop-blur-[2px]">
-                  <span className="bg-background/90 text-foreground px-5 py-2.5 rounded-full text-sm font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-all delay-100 transform translate-y-4 group-hover:translate-y-0">
-                    Lihat Penuh
-                  </span>
-                </div>
-                <img
-                  src={img.file_url}
-                  alt={`Dokumentasi ${index + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                />
-              </motion.div>
-            ))}
-          </motion.div>
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* 🌟 CONTAINER FLEKSIBEL (w-[85vw], sm: 1/2, md: 1/3) UNTUK SEMUA JUMLAH FOTO */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={staggerContainer}
+              ref={galleryRef}
+              className={`flex justify-start overflow-x-auto gap-4 md:gap-6 pb-6 snap-x snap-mandatory hide-scrollbar scroll-smooth w-full`}
+            >
+              {gallery.map((img, index) => (
+                <motion.div
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  variants={fadeInUp}
+                  // 👇 PERBAIKAN UKURAN: Memastikan selalu presisi, tidak terpotong walau hanya ada 1, 2, 3, atau 10 foto.
+                  className={`group aspect-square rounded-[2.5rem] overflow-hidden cursor-zoom-in shadow-sm border border-border bg-muted relative shrink-0 snap-start w-[85vw] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-3rem)/3)]`}
+                >
+                  <div className="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-multiply flex items-center justify-center backdrop-blur-[2px]">
+                    <span className="bg-background/90 text-foreground px-5 py-2.5 rounded-full text-sm font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-all delay-100 transform translate-y-4 group-hover:translate-y-0">
+                      Lihat Penuh
+                    </span>
+                  </div>
+                  <img
+                    src={img.file_url}
+                    alt={`Dokumentasi ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {isGalleryCarousel && (
+              <button
+                onClick={() => scrollGallery("right")}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full border border-border bg-card/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground items-center justify-center transition-all shadow-md z-20"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
         </section>
       )}
 
@@ -492,7 +533,7 @@ export default function JejakKaryaSektorPage() {
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedImageIndex((prev) =>
-                  prev === gallery.length - 1 ? 0 : prev! + 1,
+                  prev === gallery.length - 1 ? 0 : prev! - 1,
                 );
               }}
               className="absolute right-4 md:right-10 p-3 md:p-4 bg-background/50 hover:bg-primary hover:text-primary-foreground border border-border rounded-full transition-colors z-50 shadow-lg"
