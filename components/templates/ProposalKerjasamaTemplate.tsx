@@ -4,16 +4,19 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Grip,
-  Upload,
   CheckCircle2,
   X,
   Sparkles,
   Loader2,
   AlertCircle,
-  FileCheck2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
+import Link from "next/link";
 
 // --- TIPE DATA DARI CMS ---
 export interface ProposalKerjasamaData {
@@ -45,14 +48,16 @@ export function ProposalKerjasamaTemplate({
   data?: ProposalKerjasamaData;
 }) {
   const [role, setRole] = useState<"instansi" | "perusahaan" | null>(null);
+
+  // State disesuaikan 100% dengan kebutuhan DTO Backend
   const [formData, setFormData] = useState({
     namaLengkap: "",
     email: "",
     namaOrganisasi: "",
-    identitasTambahan: "",
+    phone: "", // Diubah agar sesuai DTO Phone
     jenisKerjasama: "",
     catatan: "",
-    file: null as File | null,
+    proposalFileURL: "", // Diubah menjadi String URL
   });
 
   const [agreed, setAgreed] = useState(false);
@@ -74,22 +79,16 @@ export function ProposalKerjasamaTemplate({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData({ ...formData, file: e.target.files[0] });
-    }
-  };
-
   const handleReset = () => {
     setRole(null);
     setFormData({
       namaLengkap: "",
       email: "",
       namaOrganisasi: "",
-      identitasTambahan: "",
+      phone: "",
       jenisKerjasama: "",
       catatan: "",
-      file: null,
+      proposalFileURL: "",
     });
     setAgreed(false);
     setSubmitStatus({ type: null, message: "" });
@@ -97,20 +96,22 @@ export function ProposalKerjasamaTemplate({
 
   useEffect(() => {
     let filledFields = 0;
-    const totalFields = 8;
+    const totalFields = 7; // Mengurangi jumlah field wajib (URL Proposal bersifat opsional di DTO tapi kita hitung jika diisi untuk progress)
+
     if (role !== null) filledFields++;
     if (formData.namaLengkap.trim() !== "") filledFields++;
     if (formData.email.trim() !== "") filledFields++;
     if (formData.namaOrganisasi.trim() !== "") filledFields++;
-    if (formData.identitasTambahan.trim() !== "") filledFields++;
+    if (formData.phone.trim() !== "") filledFields++;
     if (formData.jenisKerjasama.trim() !== "") filledFields++;
     if (formData.catatan.trim() !== "") filledFields++;
-    if (formData.file !== null) filledFields++;
+    // proposalFileURL opsional, tidak wajib 100% untuk submit
 
-    setProgress(Math.round((filledFields / totalFields) * 100));
+    // Sesuaikan progress agar mencapai 100% jika semua yang wajib terisi
+    setProgress(Math.min(Math.round((filledFields / 6) * 100), 100)); // 6 adalah field yang benar-benar wajib
   }, [formData, role]);
 
-  // --- FUNGSI SUBMIT KE API ---
+  // --- FUNGSI SUBMIT KE API (JSON) ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (progress < 100 || !agreed) return;
@@ -119,39 +120,36 @@ export function ProposalKerjasamaTemplate({
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      // Menggunakan FormData karena ada unggahan file fisik
-      const payload = new FormData();
-      payload.append("contact_person", formData.namaLengkap);
-      payload.append("email", formData.email);
-      payload.append("organization_name", formData.namaOrganisasi);
-      payload.append("additional_identity", formData.identitasTambahan); // Misal NIP/Website
-      payload.append("collaboration_type", formData.jenisKerjasama);
-      payload.append("message", formData.catatan);
-      payload.append("role_type", role || "");
-      if (formData.file) {
-        payload.append("proposal_file", formData.file);
-      }
+      // Menyusun Payload JSON sesuai struktur DTO Backend
+      const payload = {
+        organization_name: formData.namaOrganisasi,
+        contact_person: formData.namaLengkap,
+        email: formData.email,
+        phone: formData.phone,
+        collaboration_type: formData.jenisKerjasama,
+        message: formData.catatan,
+        proposal_file_url: formData.proposalFileURL,
+      };
 
-      await api.post("/api/v1/collaboration-requests/upload", payload, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // Mengirim sebagai application/json
+      await api.post("/api/v1/collaboration-requests", payload);
 
       setSubmitStatus({
         type: "success",
         message:
-          "Proposal berhasil dikirim. Tim kami akan segera meninjau dan menghubungi Anda.",
+          "Pengajuan kolaborasi berhasil dikirim! Tim kemitraan kami akan segera meninjau dan menghubungi Anda.",
       });
 
-      // Reset form otomatis setelah sukses
+      // Reset form otomatis setelah sukses (Jeda 4 detik agar user bisa membaca)
       setTimeout(() => {
         handleReset();
-      }, 3000);
+      }, 4000);
     } catch (error) {
       console.error("Error submitting proposal:", error);
       setSubmitStatus({
         type: "error",
         message:
-          "Gagal mengirim proposal. Pastikan koneksi stabil dan ukuran file maksimal 5MB.",
+          "Gagal mengirim proposal. Pastikan format email benar dan koneksi Anda stabil.",
       });
     } finally {
       setIsSubmitting(false);
@@ -164,12 +162,6 @@ export function ProposalKerjasamaTemplate({
       : role === "perusahaan"
         ? "Nama Perusahaan"
         : "Nama Instansi / Perusahaan";
-  const labelIdentitasTambahan =
-    role === "instansi"
-      ? "NIP / Jabatan"
-      : role === "perusahaan"
-        ? "Website Perusahaan"
-        : "NIP / Website";
 
   return (
     <div className="flex flex-col w-full bg-[#F9F9F7] dark:bg-background font-sans text-foreground min-h-screen pb-32 relative">
@@ -201,11 +193,11 @@ export function ProposalKerjasamaTemplate({
               </div>
               <div className="p-6 md:p-8 text-muted-foreground leading-relaxed text-[1.05rem] space-y-4">
                 <p>
-                  Seluruh data identitas dan dokumen proposal yang Anda unggah
-                  dijamin kerahasiaannya. Data tersebut hanya akan digunakan
-                  untuk keperluan asesmen internal Titian Nusantara dan tidak
-                  akan disebarluaskan kepada pihak ketiga tanpa persetujuan
-                  tertulis dari Anda.
+                  Seluruh data identitas dan tautan dokumen proposal yang Anda
+                  berikan dijamin kerahasiaannya. Data tersebut hanya akan
+                  digunakan untuk keperluan asesmen internal Titian Nusantara
+                  dan tidak akan disebarluaskan kepada pihak ketiga tanpa
+                  persetujuan tertulis dari Anda.
                 </p>
               </div>
               <div className="p-6 border-t border-border/50 bg-secondary/10 flex justify-end">
@@ -258,7 +250,7 @@ export function ProposalKerjasamaTemplate({
         </div>
       </section>
 
-      {/* 🌟 2. STICKY PROGRESS BAR (Glassmorphism) */}
+      {/* 🌟 2. STICKY PROGRESS BAR */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -270,12 +262,10 @@ export function ProposalKerjasamaTemplate({
           <div className="flex-1">
             <div className="flex justify-between text-sm font-extrabold tracking-wide text-foreground mb-3">
               <span className="uppercase text-muted-foreground">
-                Kelengkapan Data
+                Kelengkapan Data Utama
               </span>
               <span
-                className={
-                  progress === 100 ? "text-primary" : "text-foreground"
-                }
+                className={progress >= 100 ? "text-primary" : "text-foreground"}
               >
                 {progress}%
               </span>
@@ -308,9 +298,9 @@ export function ProposalKerjasamaTemplate({
                 }`}
               >
                 {submitStatus.type === "success" ? (
-                  <CheckCircle2 className="w-6 h-6" />
+                  <CheckCircle2 className="w-6 h-6 shrink-0" />
                 ) : (
-                  <AlertCircle className="w-6 h-6" />
+                  <AlertCircle className="w-6 h-6 shrink-0" />
                 )}
                 <p className="text-[1.05rem]">{submitStatus.message}</p>
               </motion.div>
@@ -340,7 +330,7 @@ export function ProposalKerjasamaTemplate({
                   {["instansi", "perusahaan"].map((r) => (
                     <button
                       key={r}
-                      type="button" // Penting: agar tidak memicu form submit saat diklik
+                      type="button"
                       onClick={() => setRole(r as any)}
                       className={`flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all duration-300 group outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${
                         role === r
@@ -376,10 +366,10 @@ export function ProposalKerjasamaTemplate({
 
                 <div className="bg-card border border-border/60 rounded-[2.5rem] p-8 md:p-10 space-y-6 shadow-xl shadow-primary/5">
                   <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-3 md:gap-6">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                       Nama Lengkap PIC
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       type="text"
                       name="namaLengkap"
                       required
@@ -390,10 +380,10 @@ export function ProposalKerjasamaTemplate({
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-3 md:gap-6">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                       Alamat Email
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       type="email"
                       name="email"
                       required
@@ -404,28 +394,29 @@ export function ProposalKerjasamaTemplate({
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-3 md:gap-6">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                       {labelOrganisasi}
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       type="text"
                       name="namaOrganisasi"
                       required
-                      placeholder="Ketik nama organisasi..."
+                      placeholder="Ketik nama institusi / perusahaan..."
                       value={formData.namaOrganisasi}
                       onChange={handleChange}
                       className="w-full bg-muted/30 border border-border/60 rounded-2xl px-5 py-3.5 text-foreground focus:bg-background focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all font-medium"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-3 md:gap-6">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
-                      {labelIdentitasTambahan}
-                    </label>
-                    <input
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                      Nomor Telepon / WA
+                    </Label>
+                    <Input
                       type="text"
-                      name="identitasTambahan"
-                      placeholder="Opsional / Bisa diisi NIP atau URL Website"
-                      value={formData.identitasTambahan}
+                      name="phone"
+                      placeholder="+62 8..."
+                      required
+                      value={formData.phone}
                       onChange={handleChange}
                       className="w-full bg-muted/30 border border-border/60 rounded-2xl px-5 py-3.5 text-foreground focus:bg-background focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all font-medium"
                     />
@@ -446,9 +437,9 @@ export function ProposalKerjasamaTemplate({
 
                 <div className="bg-card border border-border/60 rounded-[2.5rem] p-8 md:p-10 space-y-8 shadow-xl shadow-primary/5">
                   <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-3 md:gap-6">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                       Skema Kerjasama
-                    </label>
+                    </Label>
                     <select
                       name="jenisKerjasama"
                       required
@@ -472,10 +463,10 @@ export function ProposalKerjasamaTemplate({
                   </div>
 
                   <div className="space-y-3 pt-2">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest block">
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-widest block">
                       Catatan Kebutuhan Singkat
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                       name="catatan"
                       required
                       value={formData.catatan}
@@ -483,53 +474,27 @@ export function ProposalKerjasamaTemplate({
                       placeholder="Jelaskan secara ringkas poin-poin utama dari proposal atau tujuan akhir yang ingin dicapai..."
                       rows={5}
                       className="w-full bg-muted/30 border border-border/60 rounded-[1.5rem] px-5 py-4 text-foreground focus:bg-background focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all resize-none font-medium leading-relaxed"
-                    ></textarea>
+                    ></Textarea>
                   </div>
 
-                  {/* Area Upload File Custom */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest block">
-                      Unggah File Proposal
-                    </label>
-                    <div className="relative group">
-                      <input
-                        type="file"
-                        id="file-upload"
-                        accept=".pdf,.doc,.docx"
-                        onChange={handleFileChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      />
-                      <div
-                        className={`w-full border-2 border-dashed rounded-[1.5rem] p-8 flex flex-col items-center justify-center text-center transition-all duration-300 ${
-                          formData.file
-                            ? "border-primary bg-primary/5"
-                            : "border-border/60 bg-muted/30 group-hover:bg-background group-hover:border-primary/50"
-                        }`}
-                      >
-                        {formData.file ? (
-                          <>
-                            <FileCheck2 className="w-12 h-12 text-primary mb-3" />
-                            <span className="text-foreground font-bold text-lg mb-1">
-                              {formData.file.name}
-                            </span>
-                            <span className="text-muted-foreground text-sm">
-                              {(formData.file.size / 1024 / 1024).toFixed(2)} MB
-                              • Siap dikirim
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-10 h-10 text-muted-foreground/50 mb-3 group-hover:text-primary transition-colors" />
-                            <span className="text-foreground font-bold mb-1">
-                              Klik atau seret file ke area ini
-                            </span>
-                            <span className="text-muted-foreground text-sm">
-                              Mendukung format PDF, DOC, DOCX (Maks. 5MB)
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                  {/* URL Tautan Proposal */}
+                  <div className="space-y-3 p-6 bg-primary/5 rounded-[24px] border-2 border-primary/20 border-dashed hover:border-primary/40 transition-colors">
+                    <Label className="flex items-center gap-2 text-primary font-bold mb-2">
+                      <LinkIcon className="w-5 h-5" /> Tautan Proposal / Pitch
+                      Deck
+                    </Label>
+                    <Input
+                      name="proposalFileURL"
+                      type="url"
+                      placeholder="Masukkan URL Google Drive, Dropbox, atau Notion..."
+                      className="h-14 rounded-xl bg-background border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium"
+                      value={formData.proposalFileURL}
+                      onChange={handleChange}
+                    />
+                    <p className="text-xs text-muted-foreground ml-1 mt-2 font-medium">
+                      *Pastikan tautan dapat diakses secara publik (Anyone with
+                      the link can view). Opsional.
+                    </p>
                   </div>
 
                   {/* Persetujuan */}
@@ -546,7 +511,7 @@ export function ProposalKerjasamaTemplate({
                       className="text-[1.05rem] text-muted-foreground leading-relaxed cursor-pointer select-none font-medium"
                     >
                       Dengan mencentang kotak ini, saya menyetujui bahwa data
-                      yang diunggah akan diproses sesuai dengan{" "}
+                      yang diberikan akan diproses sesuai dengan{" "}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -576,7 +541,7 @@ export function ProposalKerjasamaTemplate({
                       type="submit"
                       disabled={progress < 100 || !agreed || isSubmitting}
                       className={`w-full sm:w-auto px-12 rounded-full h-14 font-extrabold text-base transition-all duration-300 ${
-                        progress === 100 && agreed
+                        progress >= 100 && agreed
                           ? "shadow-xl shadow-primary/30 hover:-translate-y-1 bg-primary text-primary-foreground"
                           : "opacity-60 cursor-not-allowed bg-muted text-muted-foreground"
                       }`}
