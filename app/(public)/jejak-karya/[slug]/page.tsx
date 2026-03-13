@@ -533,7 +533,7 @@ export default function JejakKaryaSektorPage() {
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedImageIndex((prev) =>
-                  prev === gallery.length - 1 ? 0 : prev! - 1,
+                  prev === gallery.length - 1 ? 0 : prev! + 1,
                 );
               }}
               className="absolute right-4 md:right-10 p-3 md:p-4 bg-background/50 hover:bg-primary hover:text-primary-foreground border border-border rounded-full transition-colors z-50 shadow-lg"

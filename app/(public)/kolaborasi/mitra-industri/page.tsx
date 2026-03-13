@@ -36,7 +36,7 @@ export default function MitraIndustriPage() {
       "Keberlanjutan bisnis tidak bisa dipisahkan dari kesejahteraan masyarakat di sekitarnya. Titian Nusantara mendampingi korporasi merancang program investasi sosial yang bukan berwujud 'amal' sesaat, melainkan pemberdayaan mandiri. \n\nKami membantu Anda menciptakan program inovatif yang tidak hanya berdampak positif bagi komunitas, tetapi juga memberikan nilai tambah (shared value) bagi kelangsungan bisnis Anda.",
     cta_title: "Diskusikan Kebutuhan CSR Anda",
     cta_text: "Hubungi Tim Kemitraan",
-    cta_link: "/kolaborasi/proposal-kerjasama",
+    cta_link: "/proposal-kerjasama",
   };
 
   return <CollaborationTemplate data={dataB2B} />;

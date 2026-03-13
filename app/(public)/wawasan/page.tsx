@@ -36,6 +36,7 @@ interface Post {
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
 };
 
 const fadeInUp = {
@@ -43,8 +44,9 @@ const fadeInUp = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
+    transition: { duration: 0.4, ease: "easeOut" },
   },
+  // exit dihapus dari sini agar tidak ada delay yang membuat DOM stuck transparan
 };
 
 function WawasanContent() {
@@ -120,13 +122,15 @@ function WawasanContent() {
 
   const updateQueryParams = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
+
     if (value && value !== "all" && value !== "") {
       params.set(key, value);
     } else {
       params.delete(key);
     }
 
-    if (key !== "page") {
+    // Selalu paksa kembali ke page 1 jika filter kategori atau pencarian berubah
+    if (key === "category_id" || key === "search") {
       params.set("page", "1");
     }
 
@@ -240,12 +244,11 @@ function WawasanContent() {
       <section className="px-4 lg:px-8 max-w-7xl mx-auto mt-10">
         <AnimatePresence mode="wait">
           {isLoading ? (
-            /* SKELETON LOADING (Sesuai dengan bentuk kartu asli) */
             <motion.div
               key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -269,11 +272,11 @@ function WawasanContent() {
               ))}
             </motion.div>
           ) : posts.length === 0 ? (
-            /* EMPTY STATE */
             <motion.div
               key="empty"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
               className="flex flex-col items-center justify-center py-32 text-center bg-card rounded-[3rem] border border-border border-dashed mx-4"
             >
               <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6">
@@ -293,6 +296,7 @@ function WawasanContent() {
               key={`${urlCategory}-${urlSearch}-${urlPage}`}
               initial="hidden"
               animate="visible"
+              exit="exit"
               variants={staggerContainer}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >

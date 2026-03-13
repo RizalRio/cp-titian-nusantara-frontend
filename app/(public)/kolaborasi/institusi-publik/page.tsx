@@ -36,7 +36,7 @@ export default function InstitusiPublikPage() {
       "Seringkali, kebijakan yang dirancang dengan baik menemui tantangan saat diimplementasikan di tingkat akar rumput. Titian Nusantara hadir sebagai katalisator. \n\nDengan pengalaman bertahun-tahun merawat ekosistem lokal, kami membantu institusi publik menerjemahkan program menjadi aksi yang relevan dengan konteks sosial budaya masyarakat setempat.",
     cta_title: "Siap Mewujudkan Program Inklusif?",
     cta_text: "Ajukan Proposal Kerjasama",
-    cta_link: "/kolaborasi/proposal-kerjasama",
+    cta_link: "/proposal-kerjasama",
   };
 
   return <CollaborationTemplate data={dataB2G} />;

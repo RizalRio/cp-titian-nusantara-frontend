@@ -270,7 +270,7 @@ export default function ProgramDetailPage() {
 
       {/* 🌟 3. CERITA LENGKAP (Rich Text) */}
       <section
-        className={`max-w-[54rem] mx-auto px-4 lg:px-8 ${!project.metrics || project.metrics.length === 0 ? "pt-24" : "pt-10"} pb-16`}
+        className={`max-w-6xl mx-auto px-4 lg:px-8 ${!project.metrics || project.metrics.length === 0 ? "pt-24" : "pt-10"} pb-16`}
       >
         <motion.div
           initial="hidden"

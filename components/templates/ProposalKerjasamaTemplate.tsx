@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Grip,
@@ -54,10 +54,10 @@ export function ProposalKerjasamaTemplate({
     namaLengkap: "",
     email: "",
     namaOrganisasi: "",
-    phone: "", // Diubah agar sesuai DTO Phone
+    phone: "",
     jenisKerjasama: "",
     catatan: "",
-    proposalFileURL: "", // Diubah menjadi String URL
+    proposalFileURL: "",
   });
 
   const [agreed, setAgreed] = useState(false);
@@ -71,6 +71,9 @@ export function ProposalKerjasamaTemplate({
     message: string;
   }>({ type: null, message: "" });
 
+  // 🌟 REF UNTUK SCROLL OTOMATIS
+  const formContainerRef = useRef<HTMLDivElement>(null);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -79,7 +82,8 @@ export function ProposalKerjasamaTemplate({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleReset = () => {
+  // 🌟 FUNGSI KHUSUS RESET INPUTAN FORM
+  const resetFormData = () => {
     setRole(null);
     setFormData({
       namaLengkap: "",
@@ -91,12 +95,16 @@ export function ProposalKerjasamaTemplate({
       proposalFileURL: "",
     });
     setAgreed(false);
+  };
+
+  // 🌟 FUNGSI RESET MANUAL OLEH USER (Termasuk menghapus pesan error/sukses)
+  const handleReset = () => {
+    resetFormData();
     setSubmitStatus({ type: null, message: "" });
   };
 
   useEffect(() => {
     let filledFields = 0;
-    const totalFields = 7; // Mengurangi jumlah field wajib (URL Proposal bersifat opsional di DTO tapi kita hitung jika diisi untuk progress)
 
     if (role !== null) filledFields++;
     if (formData.namaLengkap.trim() !== "") filledFields++;
@@ -105,13 +113,12 @@ export function ProposalKerjasamaTemplate({
     if (formData.phone.trim() !== "") filledFields++;
     if (formData.jenisKerjasama.trim() !== "") filledFields++;
     if (formData.catatan.trim() !== "") filledFields++;
-    // proposalFileURL opsional, tidak wajib 100% untuk submit
+    if (formData.proposalFileURL.trim() !== "") filledFields++;
 
-    // Sesuaikan progress agar mencapai 100% jika semua yang wajib terisi
-    setProgress(Math.min(Math.round((filledFields / 6) * 100), 100)); // 6 adalah field yang benar-benar wajib
+    setProgress(Math.min(Math.round((filledFields / 8) * 100), 100));
   }, [formData, role]);
 
-  // --- FUNGSI SUBMIT KE API (JSON) ---
+  // --- FUNGSI SUBMIT KE API ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (progress < 100 || !agreed) return;
@@ -120,7 +127,6 @@ export function ProposalKerjasamaTemplate({
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      // Menyusun Payload JSON sesuai struktur DTO Backend
       const payload = {
         organization_name: formData.namaOrganisasi,
         contact_person: formData.namaLengkap,
@@ -131,19 +137,31 @@ export function ProposalKerjasamaTemplate({
         proposal_file_url: formData.proposalFileURL,
       };
 
-      // Mengirim sebagai application/json
       await api.post("/api/v1/collaboration-requests", payload);
 
+      // 1. Reset form secara instan agar kolom langsung kosong
+      resetFormData();
+
+      // 2. Munculkan notifikasi sukses
       setSubmitStatus({
         type: "success",
         message:
           "Pengajuan kolaborasi berhasil dikirim! Tim kemitraan kami akan segera meninjau dan menghubungi Anda.",
       });
 
-      // Reset form otomatis setelah sukses (Jeda 4 detik agar user bisa membaca)
+      // 3. Scroll layar ke atas agar notifikasi terlihat jelas oleh user
+      if (formContainerRef.current) {
+        const yOffset = -200; // Jarak dari navbar/progress bar sticky
+        const element = formContainerRef.current;
+        const y =
+          element.getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+
+      // 4. Hilangkan notifikasi sukses setelah 6 detik
       setTimeout(() => {
-        handleReset();
-      }, 4000);
+        setSubmitStatus({ type: null, message: "" });
+      }, 6000);
     } catch (error) {
       console.error("Error submitting proposal:", error);
       setSubmitStatus({
@@ -151,6 +169,15 @@ export function ProposalKerjasamaTemplate({
         message:
           "Gagal mengirim proposal. Pastikan format email benar dan koneksi Anda stabil.",
       });
+
+      // Jika error, tetap scroll ke atas untuk melihat pesan error
+      if (formContainerRef.current) {
+        const yOffset = -120;
+        const element = formContainerRef.current;
+        const y =
+          element.getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -283,7 +310,7 @@ export function ProposalKerjasamaTemplate({
 
       {/* 🌟 3. FORM SECTION */}
       <section className="py-16 px-4 lg:px-8 relative z-10">
-        <div className="container mx-auto max-w-3xl">
+        <div className="container mx-auto max-w-3xl" ref={formContainerRef}>
           {/* Notifikasi Status Pengiriman */}
           <AnimatePresence mode="wait">
             {submitStatus.type && (
